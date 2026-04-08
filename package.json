@@ -1,0 +1,15 @@
+{
+	"name": "draad-maps-plugin",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start"
+	},
+	"dependencies": {
+		"draad-maps": "file:../draad-maps"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^30.0.0"
+	}
+}

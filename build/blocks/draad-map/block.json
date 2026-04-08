@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "draad/map",
+  "version": "1.0.0",
+  "title": "Map",
+  "category": "embed",
+  "icon": "location-alt",
+  "description": "Embed an interactive map.",
+  "keywords": [
+    "map",
+    "draad",
+    "leaflet"
+  ],
+  "textdomain": "draad-maps",
+  "attributes": {
+    "mapId": {
+      "type": "number",
+      "default": 0
+    },
+    "align": {
+      "type": "string",
+      "default": "full"
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ]
+  },
+  "render": "file:./render.php",
+  "editorScript": "file:./index.js"
+}
