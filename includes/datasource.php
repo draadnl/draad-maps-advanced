@@ -23,6 +23,20 @@ function draad_maps_get_post_field( WP_Post $post, string $field ): string {
 	}
 }
 
+function draad_maps_render_property_mapping_attrs( array $property_mapping ): string {
+	$visible = array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) );
+
+	if ( empty( $visible ) ) {
+		return '';
+	}
+
+	$keys   = array_map( fn( $m ) => $m['key'], $visible );
+	$labels = array_map( fn( $m ) => $m['label'] ?? $m['key'], $visible );
+
+	return ' infowindow-properties="' . esc_attr( implode( ',', $keys ) ) . '"'
+		 . ' infowindow-labels="' . esc_attr( implode( ',', $labels ) ) . '"';
+}
+
 function draad_maps_proxy_url( string $url ): string {
 	return admin_url( 'admin-ajax.php' ) . '?' . http_build_query( [
 		'action' => 'draad_maps_proxy',
@@ -186,7 +200,16 @@ function draad_maps_render_post_query( array $config ): string {
 			}
 		}
 		foreach ( $filter_props_array as $prop_key ) {
-			$props[ $prop_key ] = (string) get_post_meta( $post->ID, $prop_key, true );
+			$prop_key = trim( $prop_key );
+			// Check if this property is a taxonomy.
+			if ( taxonomy_exists( $prop_key ) ) {
+				$tax_terms = wp_get_post_terms( $post->ID, $prop_key, [ 'fields' => 'names' ] );
+				$props[ $prop_key ] = ( ! is_wp_error( $tax_terms ) && ! empty( $tax_terms ) )
+					? implode( ', ', $tax_terms )
+					: '';
+			} else {
+				$props[ $prop_key ] = (string) get_post_meta( $post->ID, $prop_key, true );
+			}
 		}
 		$props_attr = ! empty( $props ) ? ' properties="' . esc_attr( wp_json_encode( $props ) ) . '"' : '';
 
@@ -255,6 +278,7 @@ function draad_maps_render_geojson( array $config ): string {
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
+	$attrs .= draad_maps_render_property_mapping_attrs( $config['property_mapping'] ?? [] );
 
 	return '<dm-geojson' . $attrs . '></dm-geojson>';
 }
@@ -277,6 +301,7 @@ function draad_maps_render_wfs( array $config ): string {
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
+	$attrs .= draad_maps_render_property_mapping_attrs( $config['property_mapping'] ?? [] );
 
 	return '<dm-wfs' . $attrs . '></dm-wfs>';
 }

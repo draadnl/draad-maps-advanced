@@ -125,7 +125,111 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	}
 
 	// -------------------------------------------------------------------------
-	// Event delegation — type toggle + post type change + remove
+	// Property mapping helpers
+	// -------------------------------------------------------------------------
+
+	function humanizeKey( key ) {
+		return key.replace( /[_-]/g, ' ' ).replace( /\b\w/g, ( c ) => c.toUpperCase() );
+	}
+
+	function getExistingMapping( card ) {
+		const map = new Map();
+		card.querySelectorAll( '.draad-ds-pm-row' ).forEach( ( row ) => {
+			const key     = row.querySelector( '.draad-ds-pm-key' ).textContent;
+			const label   = row.querySelector( '.draad-ds-pm-label' ).value;
+			const visible = row.querySelector( '.draad-ds-pm-visible' ).checked;
+			map.set( key, { label, visible } );
+		} );
+		return map;
+	}
+
+	function populatePropertyMapping( card, keys ) {
+		const container = card.querySelector( '.draad-ds-property-mapping' );
+		if ( ! container ) return;
+
+		const tbody   = container.querySelector( 'tbody' );
+		const existing = getExistingMapping( card );
+
+		tbody.innerHTML = '';
+
+		keys.forEach( ( key ) => {
+			const prev    = existing.get( key );
+			const label   = prev ? prev.label : humanizeKey( key );
+			const visible = prev ? prev.visible : true;
+
+			const tr = document.createElement( 'tr' );
+			tr.className = 'draad-ds-pm-row';
+			tr.innerHTML =
+				'<td style="padding:4px 8px"><input type="checkbox" class="draad-ds-pm-visible"' + ( visible ? ' checked' : '' ) + ' /></td>' +
+				'<td style="padding:4px 8px"><code class="draad-ds-pm-key">' + key.replace( /</g, '&lt;' ) + '</code></td>' +
+				'<td style="padding:4px 8px"><input type="text" class="draad-ds-pm-label" value="' + label.replace( /"/g, '&quot;' ) + '" style="width:100%" /></td>';
+			tbody.appendChild( tr );
+		} );
+
+		container.style.display = keys.length ? '' : 'none';
+	}
+
+	function fetchAndPopulateProperties( card ) {
+		const type     = card.querySelector( '.draad-ds-type' ).value;
+		const slug     = type.replace( /_/g, '-' );
+		const section  = card.querySelector( '.draad-ds-fields--' + slug );
+		if ( ! section ) return;
+
+		const url      = section.querySelector( '.draad-ds-url' )?.value || '';
+		const typename = section.querySelector( '.draad-ds-typename' )?.value || '';
+		const btn      = section.querySelector( '.draad-ds-fetch-properties' );
+		const status   = section.querySelector( '.draad-ds-fetch-status' );
+
+		if ( ! url ) {
+			if ( status ) status.textContent = 'Please enter a URL first.';
+			return;
+		}
+
+		if ( type === 'wfs' && ! typename ) {
+			if ( status ) status.textContent = 'Please enter a TypeName first.';
+			return;
+		}
+
+		if ( btn ) {
+			btn.disabled    = true;
+			btn.textContent = 'Fetching…';
+		}
+		if ( status ) status.textContent = '';
+
+		const body = new URLSearchParams( {
+			action:   'draad_maps_fetch_geojson_properties',
+			nonce:    draadMapsAdmin.nonce,
+			url:      url,
+			type:     type,
+			typename: typename,
+		} );
+
+		fetch( draadMapsAdmin.ajaxUrl, {
+			method: 'POST',
+			body:   body,
+		} )
+			.then( ( r ) => r.json() )
+			.then( ( data ) => {
+				if ( data.success ) {
+					populatePropertyMapping( card, data.data );
+					if ( status ) status.textContent = data.data.length + ' properties found.';
+				} else {
+					if ( status ) status.textContent = data.data || 'Error fetching properties.';
+				}
+			} )
+			.catch( ( err ) => {
+				if ( status ) status.textContent = 'Network error: ' + err.message;
+			} )
+			.finally( () => {
+				if ( btn ) {
+					btn.disabled    = false;
+					btn.textContent = 'Fetch Properties';
+				}
+			} );
+	}
+
+	// -------------------------------------------------------------------------
+	// Event delegation — type toggle + post type change + remove + fetch
 	// -------------------------------------------------------------------------
 
 	repeater.addEventListener( 'change', ( e ) => {
@@ -146,6 +250,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( e.target.classList.contains( 'draad-remove-datasource' ) ) {
 			e.target.closest( '.draad-datasource-item' ).remove();
 			updateCardNumbers();
+		}
+
+		if ( e.target.classList.contains( 'draad-ds-fetch-properties' ) ) {
+			const card = e.target.closest( '.draad-datasource-item' );
+			if ( card ) fetchAndPopulateProperties( card );
 		}
 	} );
 
@@ -183,6 +292,18 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// Serialize to JSON on submit
 	// -------------------------------------------------------------------------
 
+	function serializePropertyMapping( card ) {
+		const mapping = [];
+		card.querySelectorAll( '.draad-ds-pm-row' ).forEach( ( row ) => {
+			mapping.push( {
+				key:     row.querySelector( '.draad-ds-pm-key' ).textContent,
+				label:   row.querySelector( '.draad-ds-pm-label' ).value,
+				visible: row.querySelector( '.draad-ds-pm-visible' ).checked,
+			} );
+		} );
+		return mapping;
+	}
+
 	function serializeDatasources() {
 		const datasources = [];
 
@@ -190,6 +311,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const type  = card.querySelector( '.draad-ds-type' ).value;
 			const label = card.querySelector( '.draad-ds-label' ).value;
 			const ds    = { type, label };
+			ds.display_only = card.querySelector( '.draad-ds-display-only' )?.checked || false;
 
 			switch ( type ) {
 				case 'post_query':
@@ -206,11 +328,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					ds.filter_labels     = card.querySelector( '.draad-ds-filter-labels' ).value;
 					break;
 				case 'geojson_url':
-					ds.url = card.querySelector( '.draad-ds-url' ).value;
+					ds.url              = card.querySelector( '.draad-ds-fields--geojson-url .draad-ds-url' ).value;
+					ds.property_mapping = serializePropertyMapping( card );
 					break;
 				case 'wfs':
-					ds.url      = card.querySelector( '.draad-ds-url' ).value;
-					ds.typename = card.querySelector( '.draad-ds-typename' ).value;
+					ds.url              = card.querySelector( '.draad-ds-fields--wfs .draad-ds-url' ).value;
+					ds.typename         = card.querySelector( '.draad-ds-typename' ).value;
+					ds.property_mapping = serializePropertyMapping( card );
 					break;
 				case 'wms':
 					ds.url    = card.querySelector( '.draad-ds-url' ).value;

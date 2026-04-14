@@ -209,6 +209,8 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 	$url               = $ds['url'] ?? '';
 	$typename          = $ds['typename'] ?? '';
 	$layers            = $ds['layers'] ?? '';
+	$property_mapping  = $ds['property_mapping'] ?? [];
+	$display_only      = ! empty( $ds['display_only'] );
 
 	// Pre-populate meta keys if post_type is set.
 	$meta_keys = [];
@@ -238,6 +240,15 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 						<option value="wfs" <?php selected( $type, 'wfs' ); ?>><?php esc_html_e( 'WFS', 'draad-maps' ); ?></option>
 						<option value="wms" <?php selected( $type, 'wms' ); ?>><?php esc_html_e( 'WMS', 'draad-maps' ); ?></option>
 					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><label><?php esc_html_e( 'Display only', 'draad-maps' ); ?></label></th>
+				<td>
+					<label>
+						<input type="checkbox" class="draad-ds-display-only" <?php checked( $display_only ); ?> />
+						<?php esc_html_e( 'Exclude from list view and filters', 'draad-maps' ); ?>
+					</label>
 				</td>
 			</tr>
 		</table>
@@ -336,6 +347,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 					<th style="width:200px"><label><?php esc_html_e( 'GeoJSON URL', 'draad-maps' ); ?></label></th>
 					<td><input type="url" class="draad-ds-url large-text" value="<?php echo esc_attr( $url ); ?>" /></td>
 				</tr>
+				<?php draad_maps_render_property_mapping_table( $property_mapping ); ?>
 			</table>
 		</div>
 
@@ -349,6 +361,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 					<th><label><?php esc_html_e( 'TypeName', 'draad-maps' ); ?></label></th>
 					<td><input type="text" class="draad-ds-typename regular-text" value="<?php echo esc_attr( $typename ); ?>" placeholder="namespace:typename" /></td>
 				</tr>
+				<?php draad_maps_render_property_mapping_table( $property_mapping ); ?>
 			</table>
 		</div>
 
@@ -365,6 +378,38 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 			</table>
 		</div>
 	</div>
+	<?php
+}
+
+function draad_maps_render_property_mapping_table( array $property_mapping ) {
+	?>
+	<tr>
+		<th style="width:200px"><label><?php esc_html_e( 'Properties', 'draad-maps' ); ?></label></th>
+		<td>
+			<button type="button" class="button draad-ds-fetch-properties"><?php esc_html_e( 'Fetch Properties', 'draad-maps' ); ?></button>
+			<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
+			<div class="draad-ds-property-mapping" style="margin-top:8px;<?php echo empty( $property_mapping ) ? 'display:none' : ''; ?>">
+				<table class="widefat fixed striped" style="max-width:600px">
+					<thead>
+						<tr>
+							<th style="width:40px;padding:4px 8px"><?php esc_html_e( 'Show', 'draad-maps' ); ?></th>
+							<th style="padding:4px 8px"><?php esc_html_e( 'Property', 'draad-maps' ); ?></th>
+							<th style="padding:4px 8px"><?php esc_html_e( 'Label', 'draad-maps' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $property_mapping as $pm ) : ?>
+							<tr class="draad-ds-pm-row">
+								<td style="padding:4px 8px"><input type="checkbox" class="draad-ds-pm-visible" <?php checked( $pm['visible'] ?? true ); ?> /></td>
+								<td style="padding:4px 8px"><code class="draad-ds-pm-key"><?php echo esc_html( $pm['key'] ); ?></code></td>
+								<td style="padding:4px 8px"><input type="text" class="draad-ds-pm-label" value="<?php echo esc_attr( $pm['label'] ?? '' ); ?>" style="width:100%" /></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+		</td>
+	</tr>
 	<?php
 }
 
@@ -407,6 +452,15 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 						<option value="wfs"><?php echo esc_js( __( 'WFS', 'draad-maps' ) ); ?></option>
 						<option value="wms"><?php echo esc_js( __( 'WMS', 'draad-maps' ) ); ?></option>
 					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><label><?php echo esc_js( __( 'Display only', 'draad-maps' ) ); ?></label></th>
+				<td>
+					<label>
+						<input type="checkbox" class="draad-ds-display-only" />
+						<?php echo esc_js( __( 'Exclude from list view and filters', 'draad-maps' ) ); ?>
+					</label>
 				</td>
 			</tr>
 		</table>
@@ -488,6 +542,25 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 					<th style="width:200px"><label><?php echo esc_js( __( 'GeoJSON URL', 'draad-maps' ) ); ?></label></th>
 					<td><input type="url" class="draad-ds-url large-text" value="" /></td>
 				</tr>
+				<tr>
+					<th style="width:200px"><label><?php echo esc_js( __( 'Properties', 'draad-maps' ) ); ?></label></th>
+					<td>
+						<button type="button" class="button draad-ds-fetch-properties"><?php echo esc_js( __( 'Fetch Properties', 'draad-maps' ) ); ?></button>
+						<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
+						<div class="draad-ds-property-mapping" style="margin-top:8px;display:none">
+							<table class="widefat fixed striped" style="max-width:600px">
+								<thead>
+									<tr>
+										<th style="width:40px;padding:4px 8px"><?php echo esc_js( __( 'Show', 'draad-maps' ) ); ?></th>
+										<th style="padding:4px 8px"><?php echo esc_js( __( 'Property', 'draad-maps' ) ); ?></th>
+										<th style="padding:4px 8px"><?php echo esc_js( __( 'Label', 'draad-maps' ) ); ?></th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</td>
+				</tr>
 			</table>
 		</div>
 
@@ -500,6 +573,25 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 				<tr>
 					<th><label><?php echo esc_js( __( 'TypeName', 'draad-maps' ) ); ?></label></th>
 					<td><input type="text" class="draad-ds-typename regular-text" value="" placeholder="namespace:typename" /></td>
+				</tr>
+				<tr>
+					<th style="width:200px"><label><?php echo esc_js( __( 'Properties', 'draad-maps' ) ); ?></label></th>
+					<td>
+						<button type="button" class="button draad-ds-fetch-properties"><?php echo esc_js( __( 'Fetch Properties', 'draad-maps' ) ); ?></button>
+						<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
+						<div class="draad-ds-property-mapping" style="margin-top:8px;display:none">
+							<table class="widefat fixed striped" style="max-width:600px">
+								<thead>
+									<tr>
+										<th style="width:40px;padding:4px 8px"><?php echo esc_js( __( 'Show', 'draad-maps' ) ); ?></th>
+										<th style="padding:4px 8px"><?php echo esc_js( __( 'Property', 'draad-maps' ) ); ?></th>
+										<th style="padding:4px 8px"><?php echo esc_js( __( 'Label', 'draad-maps' ) ); ?></th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</td>
 				</tr>
 			</table>
 		</div>

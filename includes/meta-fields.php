@@ -102,8 +102,9 @@ function draad_maps_sanitize_datasources( string $json ): string {
 		}
 
 		$entry = [
-			'type'  => $type,
-			'label' => sanitize_text_field( $ds['label'] ?? '' ),
+			'type'         => $type,
+			'label'        => sanitize_text_field( $ds['label'] ?? '' ),
+			'display_only' => ! empty( $ds['display_only'] ),
 		];
 
 		switch ( $type ) {
@@ -113,7 +114,7 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				$entry['title_field']       = sanitize_key( $ds['title_field'] ?? '' );
 				$entry['description_field'] = sanitize_key( $ds['description_field'] ?? '' );
 				$entry['image_field']       = sanitize_key( $ds['image_field'] ?? '' );
-				$entry['eyebrow_field']     = sanitize_key( $ds['eyebrow_field'] ?? '' );
+				$entry['eyebrow_field']     = sanitize_text_field( $ds['eyebrow_field'] ?? '' );
 				$entry['address_field']     = sanitize_key( $ds['address_field'] ?? '' );
 				$entry['website_field']     = sanitize_key( $ds['website_field'] ?? '' );
 				$entry['terms_taxonomy']    = sanitize_key( $ds['terms_taxonomy'] ?? '' );
@@ -122,12 +123,14 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				break;
 
 			case 'geojson_url':
-				$entry['url'] = esc_url_raw( $ds['url'] ?? '' );
+				$entry['url']              = esc_url_raw( $ds['url'] ?? '' );
+				$entry['property_mapping'] = draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] );
 				break;
 
 			case 'wfs':
-				$entry['url']      = esc_url_raw( $ds['url'] ?? '' );
-				$entry['typename'] = sanitize_text_field( $ds['typename'] ?? '' );
+				$entry['url']              = esc_url_raw( $ds['url'] ?? '' );
+				$entry['typename']         = sanitize_text_field( $ds['typename'] ?? '' );
+				$entry['property_mapping'] = draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] );
 				break;
 
 			case 'wms':
@@ -140,6 +143,28 @@ function draad_maps_sanitize_datasources( string $json ): string {
 	}
 
 	return wp_json_encode( $sanitized );
+}
+
+function draad_maps_sanitize_property_mapping( $mapping ): array {
+	if ( ! is_array( $mapping ) ) {
+		return [];
+	}
+
+	$sanitized = [];
+
+	foreach ( $mapping as $item ) {
+		if ( ! is_array( $item ) || empty( $item['key'] ) ) {
+			continue;
+		}
+
+		$sanitized[] = [
+			'key'     => sanitize_text_field( $item['key'] ),
+			'label'   => sanitize_text_field( $item['label'] ?? $item['key'] ),
+			'visible' => ! empty( $item['visible'] ),
+		];
+	}
+
+	return $sanitized;
 }
 
 function draad_maps_maybe_migrate_datasources() {

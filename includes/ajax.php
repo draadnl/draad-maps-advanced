@@ -46,6 +46,85 @@ function draad_maps_ajax_get_taxonomies() {
 	wp_send_json_success( $result );
 }
 
+add_action( 'wp_ajax_draad_maps_fetch_geojson_properties', 'draad_maps_ajax_fetch_geojson_properties' );
+
+function draad_maps_ajax_fetch_geojson_properties() {
+	check_ajax_referer( 'draad_maps_admin', 'nonce' );
+
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Unauthorized', 403 );
+	}
+
+	$url  = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+	$type = isset( $_POST['type'] ) ? sanitize_key( $_POST['type'] ) : 'geojson_url';
+
+	if ( ! $url || ! wp_http_validate_url( $url ) ) {
+		wp_send_json_error( __( 'Invalid URL.', 'draad-maps' ) );
+	}
+
+	$fetch_url = $url;
+
+	if ( 'wfs' === $type ) {
+		$typename = isset( $_POST['typename'] ) ? sanitize_text_field( wp_unslash( $_POST['typename'] ) ) : '';
+		if ( ! $typename ) {
+			wp_send_json_error( __( 'TypeName is required for WFS sources.', 'draad-maps' ) );
+		}
+		$separator = str_contains( $url, '?' ) ? '&' : '?';
+		$fetch_url = $url . $separator . http_build_query( [
+			'service'      => 'WFS',
+			'version'      => '1.1.0',
+			'request'      => 'GetFeature',
+			'typeName'     => $typename,
+			'outputFormat'  => 'application/json',
+			'maxFeatures'  => 1,
+		] );
+	}
+
+	$response = wp_remote_get( $fetch_url, [
+		'timeout'   => 15,
+		'sslverify' => true,
+	] );
+
+	if ( is_wp_error( $response ) ) {
+		wp_send_json_error( $response->get_error_message() );
+	}
+
+	$code = wp_remote_retrieve_response_code( $response );
+	if ( $code < 200 || $code >= 300 ) {
+		wp_send_json_error( sprintf( __( 'Remote server returned HTTP %d.', 'draad-maps' ), $code ) );
+	}
+
+	$body         = wp_remote_retrieve_body( $response );
+	$content_type = wp_remote_retrieve_header( $response, 'content-type' ) ?: 'application/json';
+
+	// Handle CKAN datastore responses.
+	$body = draad_maps_maybe_transform_ckan_response( $body, $content_type );
+
+	$data = json_decode( $body, true );
+
+	if ( ! is_array( $data ) || empty( $data['features'] ) || ! is_array( $data['features'] ) ) {
+		wp_send_json_error( __( 'No features found in the response.', 'draad-maps' ) );
+	}
+
+	// Merge property keys from up to 5 features for completeness.
+	$keys = [];
+	$limit = min( 5, count( $data['features'] ) );
+	for ( $i = 0; $i < $limit; $i++ ) {
+		$props = $data['features'][ $i ]['properties'] ?? [];
+		if ( is_array( $props ) ) {
+			$keys = array_merge( $keys, array_keys( $props ) );
+		}
+	}
+
+	$keys = array_values( array_unique( $keys ) );
+
+	if ( empty( $keys ) ) {
+		wp_send_json_error( __( 'No properties found in features.', 'draad-maps' ) );
+	}
+
+	wp_send_json_success( $keys );
+}
+
 function draad_maps_get_meta_keys_for_post_type( string $post_type ): array {
 	global $wpdb;
 

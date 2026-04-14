@@ -48,6 +48,9 @@ function draad_maps_render( int $map_id ): string {
 			if ( ! $label ) {
 				continue;
 			}
+			if ( ! empty( $ds['display_only'] ) ) {
+				continue;
+			}
 			if ( ! empty( $ds['filter_properties'] ) || ! empty( $ds['terms_taxonomy'] ) ) {
 				$filter_source_ids[] = sanitize_title( $label );
 			}
@@ -72,13 +75,13 @@ function draad_maps_render( int $map_id ): string {
 		foreach ( $datasources as $ds ) {
 			$type  = $ds['type'] ?? '';
 			$label = $ds['label'] ?? '';
-			if ( 'wms' === $type || ! $label ) {
+			if ( 'wms' === $type || ! $label || ! empty( $ds['display_only'] ) ) {
 				continue;
 			}
 			$list_source_ids[] = sanitize_title( $label );
 		}
 
-		$output .= '<dm-list slot="list"';
+		$output .= '<dm-list slot="toolbar"';
 		if ( ! empty( $list_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $list_source_ids ) ) . '"';
 		}
