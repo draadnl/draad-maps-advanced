@@ -1,0 +1,305 @@
+/**
+ * Den Haag Design System theme for Draad Maps
+ *
+ * Maps --dm-* custom properties to Gemeente Den Haag design tokens.
+ * Based on @gemeente-denhaag/design-tokens-components v5.1.0
+ *
+ * Typography: TheSans (body), TheMix (headings)
+ * Colors: Den Haag green palette (hsl 138°)
+ * Border radius: 3px
+ * Focus: 2px dashed
+ */
+
+/* ─── Font face declarations ─────────────────────────────────────────────── */
+
+@font-face {
+	font-family: "TheSans";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/TheSans_Plain.otf") format("opentype");
+}
+
+@font-face {
+	font-family: "TheSans";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("../fonts/TheSans_SemiBold.otf") format("opentype");
+}
+
+@font-face {
+	font-family: "TheSans";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/TheSans_Bold.otf") format("opentype");
+}
+
+@font-face {
+	font-family: "TheMix";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/TheMix_Plain.otf") format("opentype");
+}
+
+@font-face {
+	font-family: "TheMix";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/TheMix_Bold.otf") format("opentype");
+}
+
+/* ─── Token overrides ────────────────────────────────────────────────────── */
+
+dm-map {
+	/* ─── Global tokens ──────────────────────────────────────────────────── */
+
+	--dm-color-primary: hsl(138 58% 33%);          /* --denhaag-color-green-3 */
+	--dm-color-primary-hover: hsl(138 57% 27%);    /* --denhaag-color-green-4 */
+	--dm-color-primary-active: hsl(139 100% 9%);   /* --denhaag-color-green-5 */
+	--dm-color-text: hsl(0 0% 18%);                /* --denhaag-color-grey-5 */
+
+	--dm-font-family: "TheSans", sans-serif;        /* --denhaag-typography-sans-serif-font-family */
+	--dm-font-size-sm: 0.875rem;                    /* --denhaag-typography-scale-s-font-size */
+	--dm-font-weight-normal: 400;                   /* --denhaag-typography-weight-regular */
+	--dm-font-weight-medium: 500;                   /* --denhaag-typography-weight-medium */
+
+	/* ─── Map ────────────────────────────────────────────────────────────── */
+
+	--dm-map-font-family: "TheSans", sans-serif;
+	--dm-map-position-offset: 0;                    /* infowindow flush against map edge */
+	--dm-map-toolbar-color-bg: hsl(0 0% 100%);
+	--dm-map-toolbar-color-border: hsl(0 0% 82%);  /* --denhaag-color-grey-2 */
+	--dm-map-zoom-color-bg: hsl(0 0% 100%);
+	--dm-map-zoom-color-bg-hover: hsl(40 18% 97%); /* --denhaag-color-warmgrey-1 */
+	--dm-map-zoom-color-border: hsl(0 0% 82%);
+	--dm-map-zoom-color-divider: hsl(0 0% 82%);
+	--dm-map-zoom-color-text: hsl(0 0% 18%);
+	--dm-map-zoom-color-text-hover: hsl(138 58% 33%);
+	--dm-map-zoom-color-focus: hsl(47 100% 25%);       /* ocher-5 */
+	--dm-map-zoom-radius: 3px;                      /* --denhaag-border-radius */
+	--dm-map-zoom-font-weight: 400;
+
+	/* ─── Search ─────────────────────────────────────────────────────────── */
+
+	--dm-search-font-family: "TheSans", sans-serif;
+	--dm-search-font-size: 1.125rem;                /* --denhaag-typography-scale-base-font-size */
+	--dm-search-label-font-size: 1.125rem;
+	--dm-search-label-font-weight: 700;             /* --denhaag-typography-weight-bold */
+	--dm-search-label-color: hsl(0 0% 18%);         /* --denhaag-color-grey-5 */
+	--dm-search-input-background: hsl(0 0% 100%);
+	--dm-search-input-border: 1px solid hsl(0 0% 48%); /* --denhaag-color-grey-3 (utrecht-form-control-border-color) */
+	--dm-search-input-color: hsl(0 0% 29%);         /* --denhaag-color-grey-4 (utrecht-form-control-color) */
+	--dm-search-input-padding: 12px;                /* --utrecht-form-control-padding */
+	--dm-search-placeholder-color: hsl(0 0% 29%);  /* --denhaag-color-grey-4 (utrecht-form-control-placeholder-color) */
+	--dm-search-focus-color: hsl(47 100% 25%);      /* --denhaag-color-ocher-5 (focus-border-color) */
+	--dm-search-gap: 0;                              /* input + button flush */
+	--dm-search-button-background: hsl(138 58% 33%);
+	--dm-search-button-background-hover: hsl(138 57% 27%);
+	--dm-search-button-background-active: hsl(139 100% 9%);
+	--dm-search-button-color: hsl(0 0% 100%);
+	--dm-search-button-radius: 0 3px 3px 0;         /* right side only */
+	--dm-search-button-padding: 0.5rem 1rem;         /* --denhaag-button-padding: xs md */
+	--dm-search-listbox-background: hsl(0 0% 100%);
+	--dm-search-listbox-border: 1px solid hsl(0 0% 82%);
+	--dm-search-listbox-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	--dm-search-result-background-hover: hsl(40 18% 97%);
+	--dm-search-result-background-selected: hsl(117 28% 87%); /* --denhaag-color-green-1 */
+	--dm-search-result-label-color: hsl(0 0% 18%);
+	--dm-search-result-type-color: hsl(0 0% 48%);
+	--dm-search-result-icon-color: hsl(0 0% 48%);
+	--dm-search-no-results-color: hsl(0 0% 48%);
+	--dm-search-highlight-color: hsl(138 58% 33%);
+	--dm-search-type-address-color: hsl(207 80% 35%); /* --denhaag-color-blue-3 */
+	--dm-search-type-feature-color: hsl(138 58% 33%);
+	--dm-search-type-marker-color: hsl(34 100% 47%);  /* --denhaag-color-orange-3 */
+	--dm-search-scrollbar-thumb: hsl(0 0% 82%);
+	--dm-search-scrollbar-track: hsl(0 0% 95%);       /* --denhaag-color-grey-1 */
+
+	/* ─── Filter ─────────────────────────────────────────────────────────── */
+
+	--dm-filter-font-family: "TheSans", sans-serif;
+	--dm-filter-toggle-color-bg: hsl(0 0% 100%);
+	--dm-filter-toggle-color-bg-hover: hsl(117 28% 87%);
+	--dm-filter-toggle-color-border: hsl(138 58% 33%);
+	--dm-filter-toggle-color-border-hover: hsl(138 57% 27%);
+	--dm-filter-toggle-color-text: hsl(138 58% 33%);
+	--dm-filter-toggle-color-focus: hsl(47 100% 25%);  /* ocher-5 */
+	--dm-filter-toggle-radius: 3px;
+	--dm-filter-toggle-font-weight: 400;              /* --denhaag-button-font-weight: regular */
+
+	--dm-filter-header-color-bg: hsl(0 0% 100%);
+	--dm-filter-header-color-title: hsl(0 0% 18%);
+	--dm-filter-header-color-subtitle: hsl(0 0% 29%);  /* --denhaag-color-grey-4 */
+	--dm-filter-header-title-weight: 700;
+
+	--dm-filter-close-color-text: hsl(0 0% 48%);
+	--dm-filter-close-color-text-hover: hsl(0 0% 18%);
+	--dm-filter-close-color-focus: hsl(47 100% 25%);   /* ocher-5 */
+
+	--dm-filter-section-color-title: hsl(0 0% 18%);
+	--dm-filter-section-color-title-hover: hsl(138 58% 33%);
+	--dm-filter-section-title-weight: 700;
+	--dm-filter-section-color-focus: hsl(47 100% 25%);  /* ocher-5 */
+	--dm-filter-section-color-chevron: hsl(138 58% 33%);
+
+	--dm-filter-checkbox-color-border: hsl(0 0% 48%);  /* grey-3 (form-control border) */
+	--dm-filter-checkbox-color-checked: hsl(138 58% 33%);
+	--dm-filter-checkbox-color-focus: hsl(47 100% 25%); /* ocher-5 */
+	--dm-filter-checkbox-color-text: hsl(0 0% 18%);
+	--dm-filter-checkbox-color-bg: transparent;
+	--dm-filter-checkbox-radius: 3px;
+	--dm-filter-checkbox-label-color-bg: hsl(0 0% 100%);
+	--dm-filter-checkbox-label-color-bg-hover: hsl(40 18% 97%);
+	--dm-filter-checkbox-label-color-bg-checked: hsl(117 28% 87%);
+	--dm-filter-checkbox-font-size: 1.125rem;
+	--dm-filter-checkbox-font-weight: 400;
+
+	--dm-filter-chip-bg: hsl(117 28% 87%);             /* green-1 */
+	--dm-filter-chip-color: hsl(139 100% 9%);          /* green-5 */
+	--dm-filter-chip-radius: 3px;
+	--dm-filter-chip-remove-bg: rgba(0, 0, 0, 0.1);
+	--dm-filter-chip-remove-bg-hover: rgba(0, 0, 0, 0.2);
+	--dm-filter-chip-remove-color: hsl(139 100% 9%);
+	--dm-filter-chip-remove-focus: hsl(47 100% 25%);   /* ocher-5 */
+
+	--dm-filter-apply-color-bg: hsl(138 58% 33%);
+	--dm-filter-apply-color-bg-hover: hsl(138 57% 27%);
+	--dm-filter-apply-color-text: hsl(0 0% 100%);
+	--dm-filter-apply-color-focus: hsl(47 100% 25%);   /* ocher-5 */
+	--dm-filter-apply-radius: 3px;
+	--dm-filter-apply-font-weight: 400;               /* --denhaag-button-font-weight: regular */
+
+	--dm-filter-reset-color-text: hsl(207 80% 35%);    /* blue-3 (link color) */
+	--dm-filter-reset-color-text-hover: hsl(207 87% 27%); /* blue-4 */
+	--dm-filter-reset-color-focus: hsl(47 100% 25%);   /* ocher-5 */
+
+	--dm-filter-panel-color-bg: hsl(0 0% 100%);
+	--dm-filter-panel-radius: 3px;
+	--dm-filter-panel-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	--dm-filter-sidebar-color-bg: hsl(0 0% 100%);
+	--dm-filter-empty-color-text: hsl(0 0% 48%);
+
+	--dm-filter-scrollbar-bg: hsl(0 0% 95%);
+	--dm-filter-scrollbar-thumb: hsl(0 0% 82%);
+	--dm-filter-scrollbar-thumb-hover: hsl(0 0% 48%);
+
+	/* ─── Infowindow (popup) ─────────────────────────────────────────────── */
+
+	--dm-infowindow-bg: hsl(0 0% 100%);
+	--dm-infowindow-text: hsl(0 0% 29%);               /* grey-4 */
+	--dm-infowindow-text-dark: hsl(0 0% 18%);          /* grey-5 */
+	--dm-infowindow-heading: hsl(138 58% 33%);          /* green-3 — matches design */
+	--dm-infowindow-accent: hsl(138 58% 33%);
+	--dm-infowindow-accent-hover: hsl(138 57% 27%);
+	--dm-infowindow-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+	--dm-infowindow-media-bg: hsl(0 0% 95%);
+	--dm-infowindow-font-family: "TheSans", sans-serif;
+	--dm-infowindow-chip-color: hsl(0 0% 29%);         /* grey-4 text in outlined chips */
+	--dm-infowindow-chip-border: hsl(0 0% 82%);        /* grey-2 border for outlined chips */
+
+	/* ─── List ───────────────────────────────────────────────────────────── */
+
+	--dm-list-font-family: "TheSans", sans-serif;
+	--dm-list-font-size: 1.125rem;
+	--dm-list-color-primary: hsl(138 58% 33%);
+	--dm-list-color-text-muted: hsl(0 0% 48%);
+	--dm-list-card-background: hsl(0 0% 100%);
+	--dm-list-card-border: hsl(0 0% 82%);
+	--dm-list-card-radius: 3px;
+	--dm-list-card-heading-color: hsl(138 58% 33%);     /* green heading in cards too */
+	--dm-list-card-text-color: hsl(0 0% 29%);
+	--dm-list-chip-bg: transparent;                      /* outlined chips, not filled */
+	--dm-list-chip-border: hsl(0 0% 82%);
+	--dm-list-chip-color: hsl(0 0% 29%);
+
+	--dm-list-toggle-color-bg: hsl(0 0% 100%);
+	--dm-list-toggle-color-bg-hover: hsl(117 28% 87%);
+	--dm-list-toggle-color-border: hsl(138 58% 33%);
+	--dm-list-toggle-color-border-hover: hsl(138 57% 27%);
+	--dm-list-toggle-color-text: hsl(138 58% 33%);
+	--dm-list-toggle-color-focus: hsl(47 100% 25%);    /* ocher-5 */
+	--dm-list-toggle-radius: 3px;
+	--dm-list-toggle-font-family: "TheSans", sans-serif;
+	--dm-list-toggle-font-weight: 400;
+
+	/* ─── Cluster ────────────────────────────────────────────────────────── */
+
+	--dm-cluster-color-bg: hsl(138 58% 33%);
+	--dm-cluster-color-bg-outer: hsl(138 58% 33% / 0.3);
+	--dm-cluster-color-text: hsl(0 0% 100%);
+	--dm-cluster-font-weight: 700;
+
+	/* ─── Legend ──────────────────────────────────────────────────────────── */
+
+	--dm-legend-bg: hsl(0 0% 100%);
+	--dm-legend-color-text: hsl(0 0% 18%);
+	--dm-legend-color-text-muted: hsl(0 0% 48%);
+	--dm-legend-font-family: "TheSans", sans-serif;
+	--dm-legend-hover-bg: hsl(40 18% 97%);
+	--dm-legend-focus-color: hsl(47 100% 25%);          /* ocher-5 */
+	--dm-legend-checkbox-border: hsl(0 0% 82%);
+	--dm-legend-checkbox-checked-bg: hsl(138 58% 33%);
+	--dm-legend-checkbox-checked-border: hsl(138 58% 33%);
+	--dm-legend-icon-color: hsl(138 58% 33%);
+}
+
+/* ─── Shadow DOM structural overrides via ::part() ───────────────────────── */
+
+/* Infowindow panel: wider, Den Haag border-radius */
+dm-infowindow::part(panel) {
+	inline-size: 340px;
+	border-radius: 3px;
+}
+
+/* Infowindow close button: compact, 3px radius */
+dm-infowindow::part(close) {
+	inline-size: 36px;
+	block-size: 36px;
+	border-radius: 3px;
+}
+
+/* Infowindow image area: taller to show more of the image */
+dm-infowindow::part(media) {
+	max-block-size: 200px;
+}
+
+/* Infowindow body: comfortable padding */
+dm-infowindow::part(body) {
+	padding: 1.25rem;
+}
+
+/* Infowindow content: heading in green with TheMix, action button styling */
+dm-infowindow::part(content) {
+	font-family: "TheSans", sans-serif;
+}
+
+/* Action links (Naar de website button) */
+dm-infowindow::part(link) {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-block-start: 0.75rem;
+	padding: 0.5rem 1rem;
+	background: hsl(138 58% 33%);
+	color: hsl(0 0% 100%);
+	border: 1px solid transparent;
+	border-radius: 3px;
+	font-family: "TheSans", sans-serif;
+	font-size: 1.125rem;
+	font-weight: 400;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+dm-infowindow::part(link):hover {
+	background: hsl(138 57% 27%);
+}
+
+dm-infowindow::part(link):focus-visible {
+	outline: 2px dashed hsl(47 100% 25%);
+	outline-offset: 2px;
+}

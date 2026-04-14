@@ -40,6 +40,18 @@ function draad_maps_enqueue_frontend_assets() {
 
 	$enqueued = true;
 
+	$theme_js_path = DRAAD_MAPS_DIR . 'assets/js/denhaag-theme.js';
+	$theme_js_url  = DRAAD_MAPS_URL . 'assets/js/denhaag-theme.js';
+	$theme_js_ver  = file_exists( $theme_js_path ) ? filemtime( $theme_js_path ) : DRAAD_MAPS_VERSION;
+
+	wp_enqueue_script(
+		'draad-maps-denhaag-theme-js',
+		$theme_js_url,
+		[],
+		$theme_js_ver,
+		true
+	);
+
 	$iife_path = DRAAD_MAPS_DIR . 'node_modules/draad-maps/dist/draad-maps.iife.js';
 	$iife_url  = DRAAD_MAPS_URL . 'node_modules/draad-maps/dist/draad-maps.iife.js';
 	$iife_ver  = file_exists( $iife_path ) ? filemtime( $iife_path ) : DRAAD_MAPS_VERSION;
@@ -47,7 +59,7 @@ function draad_maps_enqueue_frontend_assets() {
 	wp_enqueue_script(
 		'draad-maps',
 		$iife_url,
-		[],
+		[ 'draad-maps-denhaag-theme-js' ],
 		$iife_ver,
 		true
 	);
@@ -58,6 +70,17 @@ function draad_maps_enqueue_frontend_assets() {
 		'draad-maps',
 		'window.__DRAAD_MAPS_BASE__ = ' . wp_json_encode( $markers_url ) . ';',
 		'before'
+	);
+
+	$theme_path = DRAAD_MAPS_DIR . 'assets/css/denhaag-theme.css';
+	$theme_url  = DRAAD_MAPS_URL . 'assets/css/denhaag-theme.css';
+	$theme_ver  = file_exists( $theme_path ) ? filemtime( $theme_path ) : DRAAD_MAPS_VERSION;
+
+	wp_enqueue_style(
+		'draad-maps-denhaag-theme',
+		$theme_url,
+		[],
+		$theme_ver
 	);
 }
 
