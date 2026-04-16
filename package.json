@@ -7,7 +7,7 @@
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
-		"draad-maps": "file:draad-maps-0.3.11.tgz"
+		"draad-maps": "file:draad-maps-0.4.0.tgz"
 	},
 	"devDependencies": {
 		"@wordpress/scripts": "^30.0.0"
