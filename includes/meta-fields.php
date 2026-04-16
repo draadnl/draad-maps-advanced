@@ -14,6 +14,11 @@ function draad_maps_register_meta_fields() {
 			'default'           => '52.0705,4.3007',
 			'sanitize_callback' => 'sanitize_text_field',
 		],
+		'_draad_map_center_label' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
 		'_draad_map_zoom' => [
 			'type'              => 'integer',
 			'default'           => 12,
@@ -29,11 +34,6 @@ function draad_maps_register_meta_fields() {
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		],
-		'_draad_map_search_placeholder' => [
-			'type'              => 'string',
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
 		'_draad_map_search_label' => [
 			'type'              => 'string',
 			'default'           => '',
@@ -44,17 +44,7 @@ function draad_maps_register_meta_fields() {
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		],
-		'_draad_map_filter_variant' => [
-			'type'              => 'string',
-			'default'           => 'dropdown',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
 		'_draad_map_list_enabled' => [
-			'type'              => 'string',
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
-		'_draad_map_list_label' => [
 			'type'              => 'string',
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
@@ -151,14 +141,21 @@ function draad_maps_sanitize_property_mapping( $mapping ): array {
 	}
 
 	$sanitized = [];
+	$seen_keys = [];
 
 	foreach ( $mapping as $item ) {
 		if ( ! is_array( $item ) || empty( $item['key'] ) ) {
 			continue;
 		}
 
+		$key = sanitize_text_field( $item['key'] );
+		if ( isset( $seen_keys[ $key ] ) ) {
+			continue;
+		}
+		$seen_keys[ $key ] = true;
+
 		$sanitized[] = [
-			'key'     => sanitize_text_field( $item['key'] ),
+			'key'     => $key,
 			'label'   => sanitize_text_field( $item['label'] ?? $item['key'] ),
 			'visible' => ! empty( $item['visible'] ),
 		];
@@ -186,7 +183,7 @@ function draad_maps_maybe_migrate_datasources() {
 		if ( $type === 'post_query' ) {
 			$ds[] = [
 				'type'              => 'post_query',
-				'label'             => __( 'Locations', 'draad-maps' ),
+				'label'             => __( 'Locaties', 'draad-maps' ),
 				'post_type'         => get_post_meta( $map_id, '_draad_map_datasource_post_type', true ),
 				'location_field'    => get_post_meta( $map_id, '_draad_map_datasource_location_field', true ),
 				'title_field'       => '',
@@ -196,7 +193,7 @@ function draad_maps_maybe_migrate_datasources() {
 		} elseif ( $type === 'geojson_url' ) {
 			$ds[] = [
 				'type'  => 'geojson_url',
-				'label' => __( 'GeoJSON', 'draad-maps' ),
+				'label' => 'GeoJSON',
 				'url'   => get_post_meta( $map_id, '_draad_map_datasource_url', true ),
 			];
 		}

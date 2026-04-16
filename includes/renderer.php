@@ -23,15 +23,11 @@ function draad_maps_render( int $map_id ): string {
 	$filter_enabled = get_post_meta( $map_id, '_draad_map_filter_enabled', true );
 	$list_enabled   = get_post_meta( $map_id, '_draad_map_list_enabled', true );
 
-	$output = '<dm-map center="' . esc_attr( $center ) . '" zoom="' . esc_attr( $zoom ) . '" zoom-position="bottom-right">';
+	$output = '<dm-map center="' . esc_attr( $center ) . '" zoom="' . esc_attr( $zoom ) . '">';
 
 	if ( $search_enabled ) {
-		$placeholder = get_post_meta( $map_id, '_draad_map_search_placeholder', true );
-		$label       = get_post_meta( $map_id, '_draad_map_search_label', true );
-		$output     .= '<dm-search slot="toolbar"';
-		if ( $placeholder ) {
-			$output .= ' placeholder="' . esc_attr( $placeholder ) . '"';
-		}
+		$label   = get_post_meta( $map_id, '_draad_map_search_label', true );
+		$output .= '<dm-search slot="toolbar"';
 		if ( $label ) {
 			$output .= ' label="' . esc_attr( $label ) . '"';
 		}
@@ -39,8 +35,6 @@ function draad_maps_render( int $map_id ): string {
 	}
 
 	if ( $filter_enabled ) {
-		$filter_variant = get_post_meta( $map_id, '_draad_map_filter_variant', true ) ?: 'dropdown';
-
 		// Collect IDs of filterable sources (those with filter_properties or terms_taxonomy set).
 		$filter_source_ids = [];
 		foreach ( $datasources as $ds ) {
@@ -56,19 +50,15 @@ function draad_maps_render( int $map_id ): string {
 			}
 		}
 
-		$output .= '<dm-filter slot="toolbar" variant="' . esc_attr( $filter_variant ) . '"';
+		$output .= '<dm-filter slot="toolbar" variant="dropdown"';
 		if ( ! empty( $filter_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $filter_source_ids ) ) . '"';
-		}
-		if ( 'sidebar' === $filter_variant ) {
-			$output .= ' collapsible';
 		}
 		$output .= '></dm-filter>';
 	}
 
 	if ( $list_enabled ) {
-		$list_label   = get_post_meta( $map_id, '_draad_map_list_label', true );
-		$list_columns = (int) ( get_post_meta( $map_id, '_draad_map_list_columns', true ) ?: 2 );
+		$list_columns = (int) ( get_post_meta( $map_id, '_draad_map_list_columns', true ) ?: 3 );
 
 		// Collect IDs of listable sources (skip wms — raster tiles have no features).
 		$list_source_ids = [];
@@ -84,9 +74,6 @@ function draad_maps_render( int $map_id ): string {
 		$output .= '<dm-list slot="toolbar"';
 		if ( ! empty( $list_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $list_source_ids ) ) . '"';
-		}
-		if ( $list_label ) {
-			$output .= ' label="' . esc_attr( $list_label ) . '"';
 		}
 		$output .= ' columns="' . esc_attr( $list_columns ) . '">';
 
@@ -108,6 +95,7 @@ function draad_maps_render( int $map_id ): string {
 			$output .= '<span class="address" data-field="properties.address"></span>';
 			$output .= '<p data-field="properties.description"></p>';
 			$output .= '<span class="chips" data-chips="properties.chips"></span>';
+			$output .= '<span class="action">' . esc_html__( 'Naar de website', 'draad-maps' ) . '</span>';
 			$output .= '</a>';
 			$output .= '</template>';
 		}

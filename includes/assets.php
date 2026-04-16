@@ -17,17 +17,43 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 		return;
 	}
 
+	$admin_css_path = DRAAD_MAPS_DIR . 'assets/css/admin.css';
+	wp_enqueue_style(
+		'draad-maps-admin',
+		DRAAD_MAPS_URL . 'assets/css/admin.css',
+		[],
+		file_exists( $admin_css_path ) ? filemtime( $admin_css_path ) : DRAAD_MAPS_VERSION
+	);
+
+	$admin_js_path = DRAAD_MAPS_DIR . 'assets/js/admin.js';
 	wp_enqueue_script(
 		'draad-maps-admin',
 		DRAAD_MAPS_URL . 'assets/js/admin.js',
 		[],
-		DRAAD_MAPS_VERSION,
+		file_exists( $admin_js_path ) ? filemtime( $admin_js_path ) : DRAAD_MAPS_VERSION,
 		true
 	);
 
 	wp_localize_script( 'draad-maps-admin', 'draadMapsAdmin', [
 		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 		'nonce'   => wp_create_nonce( 'draad_maps_admin' ),
+		'i18n'    => [
+			'noneOption'         => __( '— Geen —', 'draad-maps' ),
+			'loading'            => __( 'Laden…', 'draad-maps' ),
+			'loadProperties'     => __( 'Beschikbare velden laden', 'draad-maps' ),
+			'enterUrlFirst'      => __( 'Voer eerst een URL in.', 'draad-maps' ),
+			'enterTypenameFirst' => __( 'Voer eerst een featuretypenaam in.', 'draad-maps' ),
+			'fieldsLoaded'       => __( 'velden geladen.', 'draad-maps' ),
+			'errorFetching'      => __( 'Velden konden niet worden geladen. Controleer de URL en probeer het opnieuw.', 'draad-maps' ),
+			'networkError'       => __( 'De dienst is niet bereikbaar: ', 'draad-maps' ),
+			'removeDatasource'   => __( 'Deze databron verwijderen', 'draad-maps' ),
+			'datasourcePrefix'   => __( 'Databron ', 'draad-maps' ),
+			'searchPlaceholder'  => __( 'Zoek een adres of plaats…', 'draad-maps' ),
+			'searchNoResults'    => __( 'Geen resultaten gevonden.', 'draad-maps' ),
+			'searchError'        => __( 'Locatieservice niet bereikbaar.', 'draad-maps' ),
+			'searchClear'        => __( 'Locatie wissen', 'draad-maps' ),
+			'coordinatesLabel'   => __( 'Coördinaten: ', 'draad-maps' ),
+		],
 	] );
 }
 
@@ -40,18 +66,6 @@ function draad_maps_enqueue_frontend_assets() {
 
 	$enqueued = true;
 
-	$theme_js_path = DRAAD_MAPS_DIR . 'assets/js/denhaag-theme.js';
-	$theme_js_url  = DRAAD_MAPS_URL . 'assets/js/denhaag-theme.js';
-	$theme_js_ver  = file_exists( $theme_js_path ) ? filemtime( $theme_js_path ) : DRAAD_MAPS_VERSION;
-
-	wp_enqueue_script(
-		'draad-maps-denhaag-theme-js',
-		$theme_js_url,
-		[],
-		$theme_js_ver,
-		true
-	);
-
 	$iife_path = DRAAD_MAPS_DIR . 'node_modules/draad-maps/dist/draad-maps.iife.js';
 	$iife_url  = DRAAD_MAPS_URL . 'node_modules/draad-maps/dist/draad-maps.iife.js';
 	$iife_ver  = file_exists( $iife_path ) ? filemtime( $iife_path ) : DRAAD_MAPS_VERSION;
@@ -59,7 +73,7 @@ function draad_maps_enqueue_frontend_assets() {
 	wp_enqueue_script(
 		'draad-maps',
 		$iife_url,
-		[ 'draad-maps-denhaag-theme-js' ],
+		[],
 		$iife_ver,
 		true
 	);

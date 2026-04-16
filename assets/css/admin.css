@@ -1,0 +1,183 @@
+/* ---- Tab bar ---- */
+.draad-ds-tabbar {
+	display: flex;
+	align-items: flex-end;
+	gap: 3px;
+	padding: 8px 8px 0;
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-bottom: none;
+	border-radius: 2px 2px 0 0;
+}
+
+.draad-ds-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	gap: 3px;
+	flex: 1;
+}
+
+/* ---- Tab items — unstyled wrapper ---- */
+.draad-ds-tab-item {
+	display: inline-flex;
+	align-items: stretch;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+/* ---- Tab button ---- */
+.draad-ds-tab {
+	display: inline-flex;
+	align-items: center;
+	background: #dcdcde;
+	border: 1px solid #c3c4c7;
+	border-right: none;
+	border-radius: 3px 0 0 3px;
+	cursor: pointer;
+	padding: 0 10px;
+	height: 30px;
+	font-size: 13px;
+	line-height: 1;
+	color: #50575e;
+	white-space: nowrap;
+	box-shadow: 0 1px 0 #c3c4c7;
+}
+
+.draad-ds-tab-item.is-active .draad-ds-tab {
+	background: #fff;
+	border-color: #c3c4c7;
+	color: #1d2327;
+	font-weight: 600;
+	box-shadow: 0 1px 0 #c3c4c7;
+}
+
+.draad-ds-tab:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+
+/* ---- Remove button — same background as tab, subtle separator ---- */
+.draad-ds-tab-remove {
+	display: inline-flex;
+	align-items: center;
+	background: #dcdcde;
+	border: 1px solid #c3c4c7;
+	border-left: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 0 3px 3px 0;
+	cursor: pointer;
+	padding: 0 8px;
+	height: 30px;
+	font-size: 14px;
+	line-height: 1;
+	color: #787c82;
+	box-shadow: 0 1px 0 #c3c4c7;
+}
+
+.draad-ds-tab-remove:hover {
+	color: #d63638;
+}
+
+.draad-ds-tab-item.is-active .draad-ds-tab-remove {
+	background: #fff;
+	border-color: #c3c4c7;
+	border-left-color: rgba(0, 0, 0, 0.1);
+	color: #787c82;
+	box-shadow: 0 1px 0 #c3c4c7;
+}
+
+.draad-ds-tab-item.is-active .draad-ds-tab-remove:hover {
+	color: #d63638;
+}
+
+/* ---- Add button ---- */
+.draad-ds-add-btn.button {
+	align-self: flex-end !important;
+	flex-shrink: 0;
+	margin-left: auto;
+	margin-bottom: 4px;
+}
+
+/* ---- Location search autocomplete ---- */
+.draad-location-search {
+	position: relative;
+}
+
+.draad-location-search__input-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.draad-location-search__input {
+	flex: 1;
+}
+
+.draad-location-search__clear {
+	flex-shrink: 0;
+	min-width: 0;
+	padding: 0 8px;
+	height: 30px;
+	line-height: 28px;
+}
+
+.draad-location-search__listbox {
+	position: absolute;
+	z-index: 9999;
+	top: 100%;
+	left: 0;
+	min-width: 100%;
+	max-width: 480px;
+	margin: 2px 0 0;
+	padding: 4px 0;
+	list-style: none;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 2px;
+	box-shadow: 0 2px 6px rgba( 0, 0, 0, 0.12 );
+	max-height: 260px;
+	overflow-y: auto;
+}
+
+.draad-location-search__option {
+	padding: 6px 12px;
+	font-size: 13px;
+	cursor: pointer;
+	color: #1d2327;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.draad-location-search__option:hover,
+.draad-location-search__option.is-active {
+	background: #2271b1;
+	color: #fff;
+}
+
+.draad-location-search__no-results {
+	padding: 6px 12px;
+	font-size: 13px;
+	color: #787c82;
+}
+
+.draad-location-search__coords {
+	margin-top: 4px;
+	color: #787c82;
+}
+
+/* ---- Panel ---- */
+.draad-ds-panel {
+	border: 1px solid #c3c4c7;
+	padding: 12px;
+	background: #fff;
+	margin-bottom: 12px;
+}
+
+.draad-ds-panel.is-active {
+	display: block;
+}

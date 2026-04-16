@@ -30,8 +30,18 @@ function draad_maps_render_property_mapping_attrs( array $property_mapping ): st
 		return '';
 	}
 
-	$keys   = array_map( fn( $m ) => $m['key'], $visible );
-	$labels = array_map( fn( $m ) => $m['label'] ?? $m['key'], $visible );
+	// Deduplicate by key, keeping first occurrence.
+	$seen   = [];
+	$unique = [];
+	foreach ( $visible as $m ) {
+		if ( ! isset( $seen[ $m['key'] ] ) ) {
+			$seen[ $m['key'] ] = true;
+			$unique[]          = $m;
+		}
+	}
+
+	$keys   = array_map( fn( $m ) => $m['key'], $unique );
+	$labels = array_map( fn( $m ) => $m['label'] ?? $m['key'], $unique );
 
 	return ' infowindow-properties="' . esc_attr( implode( ',', $keys ) ) . '"'
 		 . ' infowindow-labels="' . esc_attr( implode( ',', $labels ) ) . '"';
@@ -69,7 +79,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$address_field     = $config['address_field'] ?? '';
 	$website_field     = $config['website_field'] ?? '';
 	$terms_taxonomy    = $config['terms_taxonomy'] ?? '';
-	$label             = $config['label'] ?? __( 'Locations', 'draad-maps' );
+	$label             = $config['label'] ?? __( 'Locaties', 'draad-maps' );
 	$filter_properties = $config['filter_properties'] ?? '';
 	$filter_labels     = $config['filter_labels'] ?? '';
 
@@ -278,9 +288,18 @@ function draad_maps_render_geojson( array $config ): string {
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
-	$attrs .= draad_maps_render_property_mapping_attrs( $config['property_mapping'] ?? [] );
+	$property_mapping = $config['property_mapping'] ?? [];
+	$attrs           .= draad_maps_render_property_mapping_attrs( $property_mapping );
 
-	return '<dm-geojson' . $attrs . '></dm-geojson>';
+	$out = '<dm-geojson' . $attrs . '></dm-geojson>';
+
+	// Emit a wildcard infowindow so feature clicks display the mapped properties.
+	$has_visible = ! empty( array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) ) );
+	if ( $has_visible ) {
+		$out .= '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*"></dm-infowindow>';
+	}
+
+	return $out;
 }
 
 function draad_maps_render_wfs( array $config ): string {
@@ -301,9 +320,18 @@ function draad_maps_render_wfs( array $config ): string {
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
-	$attrs .= draad_maps_render_property_mapping_attrs( $config['property_mapping'] ?? [] );
+	$property_mapping = $config['property_mapping'] ?? [];
+	$attrs           .= draad_maps_render_property_mapping_attrs( $property_mapping );
 
-	return '<dm-wfs' . $attrs . '></dm-wfs>';
+	$out = '<dm-wfs' . $attrs . '></dm-wfs>';
+
+	// Emit a wildcard infowindow so feature clicks display the mapped properties.
+	$has_visible = ! empty( array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) ) );
+	if ( $has_visible ) {
+		$out .= '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*"></dm-infowindow>';
+	}
+
+	return $out;
 }
 
 function draad_maps_render_wms( array $config ): string {

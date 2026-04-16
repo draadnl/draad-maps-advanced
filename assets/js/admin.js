@@ -43,7 +43,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 		if ( ! postType ) {
 			selects.forEach( ( sel ) => {
-				if ( sel ) sel.innerHTML = '<option value="">— None —</option>';
+				if ( sel ) sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
 			} );
 			return;
 		}
@@ -63,7 +63,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				selects.forEach( ( sel ) => {
 					if ( ! sel ) return;
 					const prev = preserveValues ? sel.value : '';
-					sel.innerHTML = '<option value="">— None —</option>';
+					sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
 					keys.forEach( ( key ) => {
 						const opt       = document.createElement( 'option' );
 						opt.value       = key;
@@ -91,7 +91,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( ! sel ) return;
 
 		if ( ! postType ) {
-			sel.innerHTML = '<option value="">— None —</option>';
+			sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
 			return;
 		}
 
@@ -106,7 +106,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			.then( ( data ) => {
 				if ( ! data.success ) return;
 				const prev = preserveValue ? sel.value : '';
-				sel.innerHTML = '<option value="">— None —</option>';
+				sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
 				data.data.forEach( ( tax ) => {
 					const opt       = document.createElement( 'option' );
 					opt.value       = tax.name;
@@ -181,18 +181,18 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		const status   = section.querySelector( '.draad-ds-fetch-status' );
 
 		if ( ! url ) {
-			if ( status ) status.textContent = 'Please enter a URL first.';
+			if ( status ) status.textContent = draadMapsAdmin.i18n.enterUrlFirst;
 			return;
 		}
 
 		if ( type === 'wfs' && ! typename ) {
-			if ( status ) status.textContent = 'Please enter a TypeName first.';
+			if ( status ) status.textContent = draadMapsAdmin.i18n.enterTypenameFirst;
 			return;
 		}
 
 		if ( btn ) {
 			btn.disabled    = true;
-			btn.textContent = 'Fetching…';
+			btn.textContent = draadMapsAdmin.i18n.loading;
 		}
 		if ( status ) status.textContent = '';
 
@@ -212,24 +212,58 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			.then( ( data ) => {
 				if ( data.success ) {
 					populatePropertyMapping( card, data.data );
-					if ( status ) status.textContent = data.data.length + ' properties found.';
+					if ( status ) status.textContent = data.data.length + ' ' + draadMapsAdmin.i18n.fieldsLoaded;
 				} else {
-					if ( status ) status.textContent = data.data || 'Error fetching properties.';
+					if ( status ) status.textContent = data.data || draadMapsAdmin.i18n.errorFetching;
 				}
 			} )
 			.catch( ( err ) => {
-				if ( status ) status.textContent = 'Network error: ' + err.message;
+				if ( status ) status.textContent = draadMapsAdmin.i18n.networkError + err.message;
 			} )
 			.finally( () => {
 				if ( btn ) {
 					btn.disabled    = false;
-					btn.textContent = 'Fetch Properties';
+					btn.textContent = draadMapsAdmin.i18n.loadProperties;
 				}
 			} );
 	}
 
 	// -------------------------------------------------------------------------
-	// Event delegation — type toggle + post type change + remove + fetch
+	// Tab helpers
+	// -------------------------------------------------------------------------
+
+	const tabList = document.getElementById( 'draad-datasources-tabs' );
+
+	function getCards() {
+		return Array.from( repeater.querySelectorAll( '.draad-datasource-item' ) );
+	}
+
+	function getTabItems() {
+		return tabList ? Array.from( tabList.querySelectorAll( '.draad-ds-tab-item' ) ) : [];
+	}
+
+	function activateTab( index ) {
+		getTabItems().forEach( ( tab, i ) => tab.classList.toggle( 'is-active', i === index ) );
+		getCards().forEach( ( card, i ) => {
+			card.classList.toggle( 'is-active', i === index );
+			card.style.display = i === index ? '' : 'none';
+		} );
+	}
+
+	function createTabItem( label ) {
+		const li = document.createElement( 'li' );
+		li.className = 'draad-ds-tab-item';
+		li.setAttribute( 'role', 'presentation' );
+		li.innerHTML =
+			'<button type="button" class="draad-ds-tab" role="tab">' +
+				'<span class="draad-ds-tab-label">' + ( label || '' ) + '</span>' +
+			'</button>' +
+			'<button type="button" class="draad-ds-tab-remove" aria-label="' + draadMapsAdmin.i18n.removeDatasource + '">\u00d7</button>';
+		return li;
+	}
+
+	// -------------------------------------------------------------------------
+	// Event delegation — type toggle + post type change + fetch
 	// -------------------------------------------------------------------------
 
 	repeater.addEventListener( 'change', ( e ) => {
@@ -247,15 +281,62 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	} );
 
 	repeater.addEventListener( 'click', ( e ) => {
-		if ( e.target.classList.contains( 'draad-remove-datasource' ) ) {
-			e.target.closest( '.draad-datasource-item' ).remove();
-			updateCardNumbers();
-		}
-
 		if ( e.target.classList.contains( 'draad-ds-fetch-properties' ) ) {
 			const card = e.target.closest( '.draad-datasource-item' );
 			if ( card ) fetchAndPopulateProperties( card );
 		}
+	} );
+
+	// -------------------------------------------------------------------------
+	// Tab interactions — activate + remove
+	// -------------------------------------------------------------------------
+
+	if ( tabList ) {
+		tabList.addEventListener( 'click', ( e ) => {
+			const removeBtn = e.target.closest( '.draad-ds-tab-remove' );
+			if ( removeBtn ) {
+				const li    = removeBtn.closest( '.draad-ds-tab-item' );
+				const tabs  = getTabItems();
+				const index = tabs.indexOf( li );
+				if ( index < 0 ) return;
+
+				const activeIndex = tabs.findIndex( ( t ) => t.classList.contains( 'is-active' ) );
+				const cards       = getCards();
+
+				li.remove();
+				if ( cards[ index ] ) cards[ index ].remove();
+
+				updateCardNumbers();
+
+				const remaining = getTabItems();
+				if ( remaining.length > 0 ) {
+					activateTab( Math.min( activeIndex, remaining.length - 1 ) );
+				}
+				return;
+			}
+
+			const tabBtn = e.target.closest( '.draad-ds-tab' );
+			if ( tabBtn ) {
+				const li    = tabBtn.closest( '.draad-ds-tab-item' );
+				const index = getTabItems().indexOf( li );
+				if ( index >= 0 ) activateTab( index );
+			}
+		} );
+	}
+
+	// -------------------------------------------------------------------------
+	// Live label → tab title sync
+	// -------------------------------------------------------------------------
+
+	repeater.addEventListener( 'input', ( e ) => {
+		if ( ! e.target.classList.contains( 'draad-ds-label' ) ) return;
+		const card = e.target.closest( '.draad-datasource-item' );
+		if ( ! card ) return;
+		const index   = getCards().indexOf( card );
+		const tabItem = getTabItems()[ index ];
+		if ( ! tabItem ) return;
+		const labelEl = tabItem.querySelector( '.draad-ds-tab-label' );
+		if ( labelEl ) labelEl.textContent = e.target.value.trim() || ( draadMapsAdmin.i18n.datasourcePrefix + ( index + 1 ) );
 	} );
 
 	// -------------------------------------------------------------------------
@@ -267,26 +348,41 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	}
 
 	function updateCardNumbers() {
-		repeater.querySelectorAll( '.draad-datasource-item' ).forEach( ( card, i ) => {
-			const strong = card.querySelector( 'strong' );
-			if ( strong ) strong.textContent = 'Datasource ' + ( i + 1 );
+		getTabItems().forEach( ( tab, i ) => {
+			const card    = getCards()[ i ];
+			const input   = card ? card.querySelector( '.draad-ds-label' ) : null;
+			const labelEl = tab.querySelector( '.draad-ds-tab-label' );
+			if ( labelEl && input && ! input.value.trim() ) {
+				labelEl.textContent = draadMapsAdmin.i18n.datasourcePrefix + ( i + 1 );
+			}
 		} );
 	}
 
 	addBtn.addEventListener( 'click', () => {
-		const html = template.innerHTML.replace( /\{\{NUMBER\}\}/g, String( getNextNumber() ) );
-		const div  = document.createElement( 'div' );
+		const number = getNextNumber();
+		const html   = template.innerHTML.replace( /\{\{NUMBER\}\}/g, String( number ) );
+		const div    = document.createElement( 'div' );
 		div.innerHTML = html.trim();
 		const card = div.firstElementChild;
 		if ( ! card ) return;
 		repeater.appendChild( card );
 		toggleTypeFields( card );
+
+		if ( tabList ) {
+			const tabItem = createTabItem( draadMapsAdmin.i18n.datasourcePrefix + number );
+			tabList.appendChild( tabItem );
+			activateTab( getCards().length - 1 );
+		}
 	} );
 
-	// Initialize type visibility for existing cards
+	// Initialize type visibility and activate first tab for existing cards
 	repeater.querySelectorAll( '.draad-datasource-item' ).forEach( ( card ) => {
 		toggleTypeFields( card );
 	} );
+
+	if ( getTabItems().length > 0 ) {
+		activateTab( 0 );
+	}
 
 	// -------------------------------------------------------------------------
 	// Serialize to JSON on submit
@@ -351,5 +447,196 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	const postForm = document.getElementById( 'post' ) || document.querySelector( 'form[name="post"]' );
 	if ( postForm ) {
 		postForm.addEventListener( 'submit', serializeDatasources );
+	}
+} );
+
+// -------------------------------------------------------------------------
+// PDOK location autocomplete for Startlocatie
+// -------------------------------------------------------------------------
+
+document.addEventListener( 'DOMContentLoaded', () => {
+	const wrapper = document.querySelector( '.draad-location-search' );
+	if ( ! wrapper ) return;
+
+	const searchInput  = wrapper.querySelector( '.draad-location-search__input' );
+	const clearBtn     = wrapper.querySelector( '.draad-location-search__clear' );
+	const listbox      = wrapper.querySelector( '.draad-location-search__listbox' );
+	const coordsEl     = wrapper.querySelector( '.draad-location-search__coords' );
+	const hiddenCoords = document.getElementById( 'draad_map_center' );
+	const hiddenLabel  = document.getElementById( 'draad_map_center_label' );
+
+	const suggestUrl = wrapper.dataset.pdokSuggestUrl;
+	const lookupUrl  = wrapper.dataset.pdokLookupUrl;
+	const i18n       = ( window.draadMapsAdmin || {} ).i18n || {};
+
+	searchInput.placeholder = i18n.searchPlaceholder || 'Zoek een adres of plaats…';
+
+	let debounceTimer  = null;
+	let abortCtrl      = null;
+	let activeIndex    = -1;
+
+	// -- Helpers --
+
+	function openListbox() {
+		listbox.removeAttribute( 'hidden' );
+		searchInput.setAttribute( 'aria-expanded', 'true' );
+	}
+
+	function closeListbox() {
+		listbox.setAttribute( 'hidden', '' );
+		listbox.innerHTML = '';
+		searchInput.setAttribute( 'aria-expanded', 'false' );
+		searchInput.removeAttribute( 'aria-activedescendant' );
+		activeIndex = -1;
+	}
+
+	function setActive( index ) {
+		const items = listbox.querySelectorAll( '.draad-location-search__option' );
+		items.forEach( ( el, i ) => el.classList.toggle( 'is-active', i === index ) );
+		activeIndex = index;
+		if ( items[ index ] ) {
+			searchInput.setAttribute( 'aria-activedescendant', items[ index ].id );
+			items[ index ].scrollIntoView( { block: 'nearest' } );
+		} else {
+			searchInput.removeAttribute( 'aria-activedescendant' );
+		}
+	}
+
+	function updateCoords( coords ) {
+		hiddenCoords.value = coords;
+		coordsEl.textContent = coords ? ( i18n.coordinatesLabel || 'Coördinaten: ' ) + coords : '';
+	}
+
+	// -- Suggest --
+
+	function suggest( query ) {
+		if ( abortCtrl ) abortCtrl.abort();
+		abortCtrl = new AbortController();
+
+		const params = new URLSearchParams( {
+			q:    query,
+			fq:   'type:(adres OR weg OR woonplaats OR gemeente OR postcode OR wijk OR buurt)',
+			rows: 8,
+		} );
+
+		fetch( suggestUrl + '?' + params.toString(), { signal: abortCtrl.signal } )
+			.then( ( r ) => r.json() )
+			.then( ( data ) => {
+				const docs = data?.response?.docs || [];
+				renderOptions( docs );
+			} )
+			.catch( ( err ) => {
+				if ( err.name === 'AbortError' ) return;
+				listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchError || 'Locatieservice niet bereikbaar.' ) + '</li>';
+				openListbox();
+			} );
+	}
+
+	function renderOptions( docs ) {
+		listbox.innerHTML = '';
+		if ( ! docs.length ) {
+			listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchNoResults || 'Geen resultaten gevonden.' ) + '</li>';
+			openListbox();
+			return;
+		}
+
+		docs.forEach( ( doc, i ) => {
+			const li       = document.createElement( 'li' );
+			li.id          = 'draad-location-option-' + i;
+			li.className   = 'draad-location-search__option';
+			li.setAttribute( 'role', 'option' );
+			li.setAttribute( 'data-id', doc.id );
+			li.setAttribute( 'data-label', doc.weergavenaam );
+			li.textContent = doc.weergavenaam;
+			listbox.appendChild( li );
+		} );
+
+		openListbox();
+		activeIndex = -1;
+	}
+
+	// -- Lookup --
+
+	function lookup( id, label ) {
+		const params = new URLSearchParams( { id, fl: 'id,weergavenaam,centroide_ll' } );
+
+		fetch( lookupUrl + '?' + params.toString() )
+			.then( ( r ) => r.json() )
+			.then( ( data ) => {
+				const doc       = data?.response?.docs?.[ 0 ];
+				const centroide = doc?.centroide_ll; // "POINT(lon lat)"
+				if ( ! centroide ) return;
+
+				const match = centroide.match( /POINT\(\s*([\d.]+)\s+([\d.]+)\s*\)/ );
+				if ( ! match ) return;
+
+				const lon    = parseFloat( match[ 1 ] );
+				const lat    = parseFloat( match[ 2 ] );
+				const coords = lat.toFixed( 5 ) + ',' + lon.toFixed( 5 );
+
+				searchInput.value  = label;
+				hiddenLabel.value  = label;
+				updateCoords( coords );
+				closeListbox();
+			} )
+			.catch( () => {} );
+	}
+
+	// -- Events --
+
+	searchInput.addEventListener( 'input', () => {
+		const q = searchInput.value.trim();
+		clearTimeout( debounceTimer );
+
+		if ( q.length < 2 ) {
+			closeListbox();
+			return;
+		}
+
+		debounceTimer = setTimeout( () => suggest( q ), 250 );
+	} );
+
+	searchInput.addEventListener( 'keydown', ( e ) => {
+		const items = listbox.querySelectorAll( '.draad-location-search__option' );
+		if ( e.key === 'ArrowDown' ) {
+			e.preventDefault();
+			setActive( Math.min( activeIndex + 1, items.length - 1 ) );
+		} else if ( e.key === 'ArrowUp' ) {
+			e.preventDefault();
+			setActive( Math.max( activeIndex - 1, 0 ) );
+		} else if ( e.key === 'Enter' ) {
+			e.preventDefault();
+			if ( activeIndex >= 0 && items[ activeIndex ] ) {
+				selectOption( items[ activeIndex ] );
+			}
+		} else if ( e.key === 'Escape' ) {
+			closeListbox();
+		}
+	} );
+
+	listbox.addEventListener( 'mousedown', ( e ) => {
+		const option = e.target.closest( '.draad-location-search__option' );
+		if ( option ) {
+			e.preventDefault();
+			selectOption( option );
+		}
+	} );
+
+	searchInput.addEventListener( 'blur', () => {
+		setTimeout( closeListbox, 150 );
+	} );
+
+	clearBtn.addEventListener( 'click', () => {
+		searchInput.value = '';
+		hiddenLabel.value = '';
+		updateCoords( '' );
+		closeListbox();
+		searchInput.focus();
+	} );
+
+	function selectOption( el ) {
+		const id    = el.dataset.id;
+		const label = el.dataset.label;
+		lookup( id, label );
 	}
 } );
