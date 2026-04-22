@@ -79,8 +79,8 @@ function draad_maps_enqueue_frontend_assets() {
 		false
 	);
 
-	$iife_path = DRAAD_MAPS_DIR . 'node_modules/@draadnl/map-components/dist/draad-maps.iife.js';
-	$iife_url  = DRAAD_MAPS_URL . 'node_modules/@draadnl/map-components/dist/draad-maps.iife.js';
+	$iife_path = DRAAD_MAPS_DIR . 'assets/vendor/draad-maps.iife.js';
+	$iife_url  = DRAAD_MAPS_URL . 'assets/vendor/draad-maps.iife.js';
 	$iife_ver  = file_exists( $iife_path ) ? filemtime( $iife_path ) : DRAAD_MAPS_VERSION;
 
 	wp_enqueue_script(
@@ -91,7 +91,7 @@ function draad_maps_enqueue_frontend_assets() {
 		true
 	);
 
-	$base_url    = DRAAD_MAPS_URL . 'node_modules/@draadnl/map-components/dist/';
+	$base_url    = DRAAD_MAPS_URL . 'assets/vendor/';
 	$markers_base = DRAAD_MAPS_URL . 'assets/markers/';
 
 	// Both globals must be set before the IIFE runs so components read them on first init.

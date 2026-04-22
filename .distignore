@@ -6,6 +6,7 @@
 /.npmrc
 /.distignore
 /node_modules
+/scripts
 /src
 /package.json
 /package-lock.json
