@@ -1,0 +1,15 @@
+{
+  "name": "draad/maps-plugin",
+  "description": "Create and embed interactive maps using the draad-maps web component library.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Draad",
+      "homepage": "https://draad.nl"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  }
+}

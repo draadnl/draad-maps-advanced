@@ -46,7 +46,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           mkdir -p /tmp/draad-maps-plugin
-          cp draad-maps-plugin.php README.md /tmp/draad-maps-plugin/
+          cp draad-maps-plugin.php README.md composer.json /tmp/draad-maps-plugin/
           cp -r includes build assets /tmp/draad-maps-plugin/
           cd /tmp && zip -r "draad-maps-plugin-${TAG}.zip" draad-maps-plugin
 
