@@ -7,7 +7,8 @@
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
-		"draad-maps": "file:draad-maps-0.4.0.tgz"
+		"@draadnl/map-components": "^0.5.0",
+		"@gemeente-denhaag/design-tokens-components": "^5.1.0"
 	},
 	"devDependencies": {
 		"@wordpress/scripts": "^30.0.0"
