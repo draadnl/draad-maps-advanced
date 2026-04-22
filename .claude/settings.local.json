@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:registry.npmjs.org)",
+      "Read(//tmp/claude/**)",
+      "mcp__plugin_visual-diff_visual-diff__compare_urls",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_visual-diff_visual-diff__screenshot",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(ls /Users/draad/Repositories/draad-maps-plugin/*.png)",
+      "Read(//private/tmp/**)",
+      "Read(//Users/draad/**)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:app.unpkg.com)"
+    ]
+  },
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": false
+  }
+}
