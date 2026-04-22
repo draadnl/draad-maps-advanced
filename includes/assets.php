@@ -110,8 +110,8 @@ function draad_maps_enqueue_frontend_assets() {
 		'before'
 	);
 
-	$tokens_path = DRAAD_MAPS_DIR . 'node_modules/@gemeente-denhaag/design-tokens-components/dist/theme/index.css';
-	$tokens_url  = DRAAD_MAPS_URL . 'node_modules/@gemeente-denhaag/design-tokens-components/dist/theme/index.css';
+	$tokens_path = DRAAD_MAPS_DIR . 'node_modules/@gemeente-denhaag/design-tokens/dist/index.css';
+	$tokens_url  = DRAAD_MAPS_URL . 'node_modules/@gemeente-denhaag/design-tokens/dist/index.css';
 	$tokens_ver  = file_exists( $tokens_path ) ? filemtime( $tokens_path ) : DRAAD_MAPS_VERSION;
 
 	wp_enqueue_style(
