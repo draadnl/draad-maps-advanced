@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.6] - 2026-04-22
 
 ### Added
-- `composer.json` added to the plugin, enabling installation via Composer (`draad/maps-plugin`).
+- `composer.json` added to the plugin, enabling installation via Composer (`draadnl/draad-maps-plugin`).
 
 ## [1.2.5] - 2026-04-22
 
