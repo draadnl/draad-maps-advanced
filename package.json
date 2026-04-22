@@ -1,13 +1,16 @@
 {
 	"name": "draad-maps-plugin",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"private": true,
 	"scripts": {
+		"prebuild": "node scripts/wrap-tokens.js",
 		"build": "wp-scripts build",
+		"prestart": "node scripts/wrap-tokens.js",
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
-		"draad-maps": "file:draad-maps-0.4.0.tgz"
+		"@draadnl/map-components": "^0.5.0",
+		"@gemeente-denhaag/design-tokens": "^1.2.0"
 	},
 	"devDependencies": {
 		"@wordpress/scripts": "^30.0.0"

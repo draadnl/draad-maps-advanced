@@ -1,12 +1,14 @@
 /**
  * Den Haag Design System theme for Draad Maps
  *
- * Maps --dm-* custom properties to Gemeente Den Haag design tokens.
- * Based on @gemeente-denhaag/design-tokens-components v5.1.0
+ * Maps --draad-map-components-* custom properties to Gemeente Den Haag design
+ * tokens. CSS custom properties inherit through Shadow DOM, so setting them
+ * here applies across all components.
  *
+ * Requires: @gemeente-denhaag/design-tokens-components (enqueued separately)
  * Typography: TheSans (body), TheMix (headings)
- * Colors: Den Haag green palette (hsl 138°)
- * Border radius: 3px
+ * Colors: Den Haag green palette
+ * Border radius: --denhaag-border-radius
  * Focus: 2px dashed
  */
 
@@ -54,338 +56,375 @@
 
 /* ─── Token overrides ────────────────────────────────────────────────────── */
 
-.wp-block-draad-map dm-map {
+.wp-block-draad-map {
 	/* ─── Global tokens ──────────────────────────────────────────────────── */
 
-	--dm-color-primary: hsl(138 58% 33%);          /* --denhaag-color-green-3 */
-	--dm-color-primary-hover: hsl(138 57% 27%);    /* --denhaag-color-green-4 */
-	--dm-color-primary-active: hsl(139 100% 9%);   /* --denhaag-color-green-5 */
-	--dm-color-text: hsl(0 0% 18%);                /* --denhaag-color-grey-5 */
+	--draad-map-components-color-primary:        var(--denhaag-color-green-3);
+	--draad-map-components-color-primary-hover:  var(--denhaag-color-green-4);
+	--draad-map-components-color-primary-active: var(--denhaag-color-green-5);
+	--draad-map-components-color-text:           var(--denhaag-color-grey-5);
 
-	--dm-font-family: "TheSans", sans-serif;        /* --denhaag-typography-sans-serif-font-family */
-	--dm-font-size-sm: 0.875rem;                    /* --denhaag-typography-scale-s-font-size */
-	--dm-font-weight-normal: 400;                   /* --denhaag-typography-weight-regular */
-	--dm-font-weight-medium: 500;                   /* --denhaag-typography-weight-medium */
-	--dm-font-weight-semibold: 600;                 /* --denhaag-typography-weight-semibold */
-	--dm-focus-color: hsl(47 100% 25%);             /* ocher-5 — same as other focus vars */
+	--draad-map-components-font-family:          var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-font-size-sm:         var(--denhaag-typography-scale-s-font-size);
+	--draad-map-components-font-weight-normal:   var(--denhaag-typography-weight-regular);
+	--draad-map-components-font-weight-medium:   var(--denhaag-typography-weight-medium);
+	--draad-map-components-font-weight-semibold: var(--denhaag-typography-weight-semibold);
+	--draad-map-components-font-weight-bold:     var(--denhaag-typography-weight-bold);
+	--draad-map-components-focus-color:          var(--denhaag-color-ocher-5);
 
 	/* ─── Buttons ────────────────────────────────────────────────────────── */
 
-	--dm-button-primary-color-bg: hsl(138 58% 33%);
-	--dm-button-primary-color-text: hsl(0 0% 100%);
-	--dm-button-primary-color-bg-hover: hsl(138 57% 27%);
-	--dm-button-primary-color-bg-active: hsl(139 100% 9%);
-	--dm-button-primary-color-bg-disabled: hsl(0 0% 82%);
-	--dm-button-primary-color-text-disabled: hsl(0 0% 29%);
-	--dm-button-primary-color-focus-ring: hsl(47 100% 25%);
-	--dm-button-primary-radius: 3px;
-	--dm-button-primary-focus-ring-width: 2px;
-	--dm-button-primary-focus-ring-style: dashed;
-	--dm-button-primary-lg-block-size: 48px;
-	--dm-button-primary-lg-padding: 11px 20px;
-	--dm-button-primary-lg-font-size: 20px;
-	--dm-button-primary-lg-line-height: 1.3;
-	--dm-button-primary-lg-font-weight: 400;
-	--dm-button-primary-gap: 8px;
-	--dm-button-primary-md-size: 43px;
-	--dm-button-primary-md-icon-size: 20px;
-	--dm-button-primary-md-padding: 12px;
+	--draad-map-components-button-primary-color-bg:            var(--denhaag-color-green-3);
+	--draad-map-components-button-primary-color-text:          var(--denhaag-color-white);
+	--draad-map-components-button-primary-color-bg-hover:      var(--denhaag-color-green-4);
+	--draad-map-components-button-primary-color-bg-active:     var(--denhaag-color-green-5);
+	--draad-map-components-button-primary-color-bg-disabled:   var(--denhaag-color-grey-2);
+	--draad-map-components-button-primary-color-text-disabled: var(--denhaag-color-grey-4);
+	--draad-map-components-button-primary-color-focus-ring:    var(--denhaag-color-ocher-5);
+	--draad-map-components-button-primary-radius:              var(--denhaag-border-radius);
+	--draad-map-components-button-primary-focus-ring-width:    2px;
+	--draad-map-components-button-primary-focus-ring-style:    dashed;
+	--draad-map-components-button-primary-lg-block-size:       48px;
+	--draad-map-components-button-primary-lg-padding:          11px 20px;
+	--draad-map-components-button-primary-lg-font-size:        20px;
+	--draad-map-components-button-primary-lg-line-height:      1.3;
+	--draad-map-components-button-primary-lg-font-weight:      var(--denhaag-typography-weight-regular);
+	--draad-map-components-button-primary-gap:                 8px;
+	--draad-map-components-button-primary-md-size:             43px;
+	--draad-map-components-button-primary-md-icon-size:        20px;
+	--draad-map-components-button-primary-md-padding:          12px;
 
-	--dm-button-secondary-color-bg: hsl(0 0% 100%);
-	--dm-button-secondary-color-border: hsl(138 58% 33%);
-	--dm-button-secondary-color-text: hsl(138 58% 33%);
-	--dm-button-secondary-color-border-hover: hsl(138 57% 27%);
-	--dm-button-secondary-color-text-hover: hsl(138 57% 27%);
-	--dm-button-secondary-color-border-active: hsl(139 100% 9%);
-	--dm-button-secondary-color-text-active: hsl(139 100% 9%);
-	--dm-button-secondary-color-bg-disabled: hsl(0 0% 82%);
-	--dm-button-secondary-color-text-disabled: hsl(0 0% 29%);
-	--dm-button-secondary-color-focus-ring: hsl(47 100% 25%);
-	--dm-button-secondary-radius: 3px;
-	--dm-button-secondary-border-width: 1px;
-	--dm-button-secondary-focus-ring-width: 2px;
-	--dm-button-secondary-focus-ring-style: dashed;
-	--dm-button-secondary-lg-block-size: 48px;
-	--dm-button-secondary-lg-padding: 11px 20px;
-	--dm-button-secondary-lg-font-size: 20px;
-	--dm-button-secondary-lg-line-height: 1.3;
-	--dm-button-secondary-lg-font-weight: 400;
-	--dm-button-secondary-gap: 8px;
-	--dm-button-secondary-md-size: 43px;
-	--dm-button-secondary-md-icon-size: 20px;
-	--dm-button-secondary-md-padding: 12px;
+	--draad-map-components-button-secondary-color-bg:            var(--denhaag-color-white);
+	--draad-map-components-button-secondary-color-border:        var(--denhaag-color-green-3);
+	--draad-map-components-button-secondary-color-text:          var(--denhaag-color-green-3);
+	--draad-map-components-button-secondary-color-border-hover:  var(--denhaag-color-green-4);
+	--draad-map-components-button-secondary-color-text-hover:    var(--denhaag-color-green-4);
+	--draad-map-components-button-secondary-color-border-active: var(--denhaag-color-green-5);
+	--draad-map-components-button-secondary-color-text-active:   var(--denhaag-color-green-5);
+	--draad-map-components-button-secondary-color-bg-disabled:   var(--denhaag-color-grey-2);
+	--draad-map-components-button-secondary-color-text-disabled: var(--denhaag-color-grey-4);
+	--draad-map-components-button-secondary-color-focus-ring:    var(--denhaag-color-ocher-5);
+	--draad-map-components-button-secondary-radius:              var(--denhaag-border-radius);
+	--draad-map-components-button-secondary-border-width:        1px;
+	--draad-map-components-button-secondary-focus-ring-width:    2px;
+	--draad-map-components-button-secondary-focus-ring-style:    dashed;
+	--draad-map-components-button-secondary-lg-block-size:       48px;
+	--draad-map-components-button-secondary-lg-padding:          11px 20px;
+	--draad-map-components-button-secondary-lg-font-size:        20px;
+	--draad-map-components-button-secondary-lg-line-height:      1.3;
+	--draad-map-components-button-secondary-lg-font-weight:      var(--denhaag-typography-weight-regular);
+	--draad-map-components-button-secondary-gap:                 8px;
+	--draad-map-components-button-secondary-md-size:             43px;
+	--draad-map-components-button-secondary-md-icon-size:        20px;
+	--draad-map-components-button-secondary-md-padding:          12px;
 
 	/* ─── Map ────────────────────────────────────────────────────────────── */
 
-	--dm-map-font-family: "TheSans", sans-serif;
-	--dm-map-aspect-ratio: 1082 / 756;              /* match dev; tune per design */
-	--dm-map-position-offset: 0;                    /* infowindow flush against map edge */
-	--dm-map-toolbar-color-bg: hsl(0 0% 100%);
-	--dm-map-toolbar-color-border: hsl(0 0% 82%);  /* --denhaag-color-grey-2 */
-	--dm-map-toolbar-padding: 20px 0;              /* denhaag-space-block-lg (1.25rem) 0 */
-	--dm-map-toolbar-gap: 8px;                     /* denhaag-space-inline-xs (0.5rem) */
-	--dm-map-zoom-color-bg: hsl(0 0% 100%);
-	--dm-map-zoom-color-bg-hover: hsl(0 0% 95%);  /* --denhaag-color-grey-1 */
-	--dm-map-zoom-color-border: hsl(138 58% 33%); /* --denhaag-color-green-3 */
-	--dm-map-zoom-color-divider: hsl(0 0% 82%);
-	--dm-map-zoom-color-text: hsl(138 58% 33%);   /* --denhaag-color-green-3 */
-	--dm-map-zoom-color-text-hover: hsl(138 57% 27%); /* --denhaag-color-green-4 */
-	--dm-map-zoom-color-focus: hsl(47 100% 25%);       /* ocher-5 */
-	--dm-map-zoom-radius: 3px;                      /* --denhaag-border-radius */
-	--dm-map-zoom-font-weight: 400;
+	--draad-map-components-map-font-family:          var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-map-aspect-ratio:         1082 / 756;
+	--draad-map-components-map-position-offset:      0;
+	--draad-map-components-map-toolbar-color-bg:     var(--denhaag-color-white);
+	--draad-map-components-map-toolbar-color-border: var(--denhaag-color-grey-2);
+	--draad-map-components-map-toolbar-padding:      20px 0;
+	--draad-map-components-map-toolbar-gap:          8px;
+	--draad-map-components-toolbar-width:            var(--wp--style--global--content-size);
+	--draad-map-components-map-zoom-color-bg:        var(--denhaag-color-white);
+	--draad-map-components-map-zoom-color-bg-hover:  var(--denhaag-color-grey-1);
+	--draad-map-components-map-zoom-color-border:    var(--denhaag-color-green-3);
+	--draad-map-components-map-zoom-color-divider:   var(--denhaag-color-grey-2);
+	--draad-map-components-map-zoom-color-text:      var(--denhaag-color-green-3);
+	--draad-map-components-map-zoom-color-text-hover: var(--denhaag-color-green-4);
+	--draad-map-components-map-zoom-color-focus:     var(--denhaag-color-ocher-5);
+	--draad-map-components-map-zoom-radius:          var(--denhaag-border-radius);
+	--draad-map-components-map-zoom-font-weight:     var(--denhaag-typography-weight-regular);
 
 	/* ─── Search ─────────────────────────────────────────────────────────── */
 
-	--dm-search-font-family: "TheSans", sans-serif;
-	--dm-search-font-size: 1.125rem;                /* --denhaag-typography-scale-base-font-size */
-	--dm-search-label-font-size: 1.125rem;
-	--dm-search-label-font-weight: 700;             /* --denhaag-typography-weight-bold */
-	--dm-search-label-color: hsl(0 0% 18%);         /* --denhaag-color-grey-5 */
-	--dm-search-input-background: hsl(0 0% 100%);
-	--dm-search-input-border: hsl(0 0% 48%);            /* --denhaag-color-grey-3 (utrecht-form-control-border-color) */
-	--dm-search-input-border-focus: hsl(0 0% 29%);  /* grey-4 */
-	--dm-search-input-radius: 3px;
-	--dm-search-input-color: hsl(0 0% 29%);         /* --denhaag-color-grey-4 (utrecht-form-control-color) */
-	--dm-search-input-padding: 12px;                /* --utrecht-form-control-padding */
-	--dm-search-placeholder-color: hsl(0 0% 48%);  /* --denhaag-color-grey-3 (utrecht-form-control-placeholder-color) */
-	--dm-search-focus-color: hsl(47 100% 25%);      /* --denhaag-color-ocher-5 (focus-border-color) */
-	--dm-search-focus-ring: hsl(47 100% 25%);       /* ocher-5 */
-	--dm-search-link-color: hsl(207 80% 35%);       /* blue-3 */
-	--dm-search-gap: 0;                              /* input + button flush */
-	--dm-search-button-background: hsl(138 58% 33%);
-	--dm-search-button-background-hover: hsl(138 57% 27%);
-	--dm-search-button-background-active: hsl(139 100% 9%);
-	--dm-search-button-color: hsl(0 0% 100%);
-	--dm-search-button-radius: 0 3px 3px 0;         /* right side only */
-	--dm-search-button-padding: 0.5rem 1rem;         /* --denhaag-button-padding: xs md */
-	--dm-search-listbox-background: hsl(0 0% 100%);
-	--dm-search-listbox-border: 1px solid hsl(0 0% 82%);
-	--dm-search-listbox-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	--dm-search-result-background-hover: hsl(40 18% 97%);
-	--dm-search-result-background-selected: hsl(117 28% 87%); /* --denhaag-color-green-1 */
-	--dm-search-result-label-color: hsl(0 0% 18%);
-	--dm-search-result-type-color: hsl(0 0% 48%);
-	--dm-search-result-icon-color: hsl(0 0% 48%);
-	--dm-search-no-results-color: hsl(0 0% 29%);   /* --denhaag-color-grey-4 */
-	--dm-search-highlight-color: hsl(138 58% 33%);
-	--dm-search-type-address-color: hsl(207 80% 35%); /* --denhaag-color-blue-3 */
-	--dm-search-type-feature-color: hsl(138 58% 33%);
-	--dm-search-type-marker-color: hsl(34 100% 47%);  /* --denhaag-color-orange-3 */
-	--dm-search-scrollbar-thumb: hsl(0 0% 82%);
-	--dm-search-scrollbar-track: hsl(0 0% 95%);       /* --denhaag-color-grey-1 */
+	--draad-map-components-search-font-family:              var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-search-font-size:                var(--denhaag-typography-scale-base-font-size);
+	--draad-map-components-search-label-font-size:          var(--denhaag-typography-scale-base-font-size);
+	--draad-map-components-search-label-font-weight:        var(--denhaag-typography-weight-bold);
+	--draad-map-components-search-label-color:              var(--denhaag-color-grey-5);
+	--draad-map-components-search-input-bg:                 var(--denhaag-color-white);
+	--draad-map-components-search-input-border:             var(--denhaag-color-grey-3);
+	--draad-map-components-search-input-border-focus:       var(--denhaag-color-grey-4);
+	--draad-map-components-search-input-radius:             var(--denhaag-border-radius);
+	--draad-map-components-search-input-color:              var(--denhaag-color-grey-4);
+	--draad-map-components-search-input-padding:            12px;
+	--draad-map-components-search-placeholder-color:        var(--denhaag-color-grey-3);
+	--draad-map-components-search-focus-color:              var(--denhaag-color-ocher-5);
+	--draad-map-components-search-focus-ring:               var(--denhaag-color-ocher-5);
+	--draad-map-components-search-link-color:               var(--denhaag-color-blue-3);
+	--draad-map-components-search-gap:                      0;
+	--draad-map-components-search-button-background:        var(--denhaag-color-green-3);
+	--draad-map-components-search-button-background-hover:  var(--denhaag-color-green-4);
+	--draad-map-components-search-button-background-active: var(--denhaag-color-green-5);
+	--draad-map-components-search-button-color:             var(--denhaag-color-white);
+	--draad-map-components-search-button-radius:            0 var(--denhaag-border-radius) var(--denhaag-border-radius) 0;
+	--draad-map-components-search-button-padding:           0.5rem 1rem;
+	--draad-map-components-search-listbox-bg:               var(--denhaag-color-white);
+	--draad-map-components-search-listbox-border:           1px solid var(--denhaag-color-grey-2);
+	--draad-map-components-search-listbox-shadow:           0 4px 12px rgba(0, 0, 0, 0.1);
+	--draad-map-components-search-result-background-hover:    var(--denhaag-color-warmgrey-1);
+	--draad-map-components-search-result-background-selected: var(--denhaag-color-green-1);
+	--draad-map-components-search-result-label-color:       var(--denhaag-color-grey-5);
+	--draad-map-components-search-result-type-color:        var(--denhaag-color-grey-3);
+	--draad-map-components-search-result-icon-color:        var(--denhaag-color-grey-3);
+	--draad-map-components-search-no-results-color:         var(--denhaag-color-grey-4);
+	--draad-map-components-search-highlight-color:          var(--denhaag-color-green-3);
+	--draad-map-components-search-type-address-color:       var(--denhaag-color-blue-3);
+	--draad-map-components-search-type-feature-color:       var(--denhaag-color-green-3);
+	--draad-map-components-search-type-marker-color:        var(--denhaag-color-orange-3);
+	--draad-map-components-search-scrollbar-thumb:          var(--denhaag-color-grey-2);
+	--draad-map-components-search-scrollbar-track:          var(--denhaag-color-grey-1);
 
 	/* ─── Filter ─────────────────────────────────────────────────────────── */
 
-	--dm-filter-font-family: "TheSans", sans-serif;
-	--dm-filter-toggle-color-bg: hsl(0 0% 100%);
-	--dm-filter-toggle-color-bg-hover: hsl(117 28% 87%);
-	--dm-filter-toggle-color-border: hsl(138 58% 33%);
-	--dm-filter-toggle-color-border-hover: hsl(138 57% 27%);
-	--dm-filter-toggle-color-text: hsl(138 58% 33%);
-	--dm-filter-toggle-color-focus: hsl(47 100% 25%);  /* ocher-5 */
-	--dm-filter-toggle-radius: 3px;
-	--dm-filter-toggle-font-weight: 400;              /* --denhaag-button-font-weight: regular */
+	--draad-map-components-filter-font-family:           var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-filter-toggle-color-bg:       var(--denhaag-color-white);
+	--draad-map-components-filter-toggle-color-bg-hover: var(--denhaag-color-green-1);
+	--draad-map-components-filter-toggle-color-border:        var(--denhaag-color-green-3);
+	--draad-map-components-filter-toggle-color-border-hover:  var(--denhaag-color-green-4);
+	--draad-map-components-filter-toggle-color-text:          var(--denhaag-color-green-3);
+	--draad-map-components-filter-toggle-color-focus:         var(--denhaag-color-ocher-5);
+	--draad-map-components-filter-toggle-radius:              var(--denhaag-border-radius);
+	--draad-map-components-filter-toggle-font-weight:         var(--denhaag-typography-weight-regular);
 
-	--dm-filter-header-color-bg: hsl(0 0% 100%);
-	--dm-filter-header-color-title: hsl(0 0% 18%);
-	--dm-filter-header-color-subtitle: hsl(0 0% 29%);  /* --denhaag-color-grey-4 */
-	--dm-filter-header-title-weight: 700;
+	--draad-map-components-filter-header-color-bg:       var(--denhaag-color-white);
+	--draad-map-components-filter-header-color-title:    var(--denhaag-color-grey-5);
+	--draad-map-components-filter-header-color-subtitle: var(--denhaag-color-grey-4);
+	--draad-map-components-filter-header-title-weight:   var(--denhaag-typography-weight-bold);
 
-	--dm-filter-close-color-text: hsl(0 0% 48%);
-	--dm-filter-close-color-text-hover: hsl(0 0% 18%);
-	--dm-filter-close-color-focus: hsl(47 100% 25%);   /* ocher-5 */
+	--draad-map-components-filter-close-color-text:       var(--denhaag-color-grey-3);
+	--draad-map-components-filter-close-color-text-hover: var(--denhaag-color-grey-5);
+	--draad-map-components-filter-close-color-focus:      var(--denhaag-color-ocher-5);
 
-	--dm-filter-section-color-title: hsl(0 0% 18%);
-	--dm-filter-section-color-title-hover: hsl(138 58% 33%);
-	--dm-filter-section-title-weight: 700;
-	--dm-filter-section-color-focus: hsl(47 100% 25%);  /* ocher-5 */
-	--dm-filter-section-color-chevron: hsl(138 58% 33%);
+	--draad-map-components-filter-section-color-title:       var(--denhaag-color-grey-5);
+	--draad-map-components-filter-section-color-title-hover: var(--denhaag-color-green-3);
+	--draad-map-components-filter-section-title-weight:      var(--denhaag-typography-weight-bold);
+	--draad-map-components-filter-section-color-focus:       var(--denhaag-color-ocher-5);
+	--draad-map-components-filter-section-color-chevron:     var(--denhaag-color-green-3);
 
-	--dm-filter-checkbox-color-border: hsl(0 0% 82%);  /* grey-2 */
-	--dm-filter-checkbox-color-checked: hsl(138 58% 33%);
-	--dm-filter-checkbox-color-focus: hsl(47 100% 25%); /* ocher-5 */
-	--dm-filter-checkbox-color-text: hsl(0 0% 18%);
-	--dm-filter-checkbox-color-bg: transparent;
-	--dm-filter-checkbox-radius: 3px;
-	--dm-filter-checkbox-label-color-bg: hsl(0 0% 100%);
-	--dm-filter-checkbox-label-color-bg-hover: hsl(40 18% 97%);
-	--dm-filter-checkbox-label-color-bg-checked: hsl(40 18% 97%);  /* --denhaag-color-warmgrey-1 */
-	--dm-filter-checkbox-font-size: 1.125rem;
-	--dm-filter-checkbox-font-weight: 400;
+	--draad-map-components-filter-checkbox-color-border:           var(--denhaag-color-grey-2);
+	--draad-map-components-filter-checkbox-color-checked:          var(--denhaag-color-green-3);
+	--draad-map-components-filter-checkbox-color-focus:            var(--denhaag-color-ocher-5);
+	--draad-map-components-filter-checkbox-color-text:             var(--denhaag-color-grey-5);
+	--draad-map-components-filter-checkbox-color-bg:               transparent;
+	--draad-map-components-filter-checkbox-radius:                 var(--denhaag-border-radius);
+	--draad-map-components-filter-checkbox-label-color-bg:         var(--denhaag-color-white);
+	--draad-map-components-filter-checkbox-label-color-bg-hover:   var(--denhaag-color-warmgrey-1);
+	--draad-map-components-filter-checkbox-label-color-bg-checked: var(--denhaag-color-warmgrey-1);
+	--draad-map-components-filter-checkbox-font-size:              var(--denhaag-typography-scale-base-font-size);
+	--draad-map-components-filter-checkbox-font-weight:            var(--denhaag-typography-weight-regular);
 
-	--dm-filter-chip-bg: hsl(0 0% 95%);                /* --denhaag-color-grey-1 */
-	--dm-filter-chip-color: hsl(0 0% 18%);             /* --denhaag-color-grey-5 */
-	--dm-filter-chip-radius: 3px;
-	--dm-filter-chip-remove-bg: rgba(0, 0, 0, 0.1);
-	--dm-filter-chip-remove-bg-hover: rgba(0, 0, 0, 0.2);
-	--dm-filter-chip-remove-color: hsl(139 100% 9%);
-	--dm-filter-chip-remove-focus: hsl(47 100% 25%);   /* ocher-5 */
+	--draad-map-components-filter-chip-bg:             var(--denhaag-color-grey-1);
+	--draad-map-components-filter-chip-color:          var(--denhaag-color-grey-5);
+	--draad-map-components-filter-chip-radius:         var(--denhaag-border-radius);
+	--draad-map-components-filter-chip-remove-bg:      rgba(0, 0, 0, 0.1);
+	--draad-map-components-filter-chip-remove-bg-hover: rgba(0, 0, 0, 0.2);
+	--draad-map-components-filter-chip-remove-color:   var(--denhaag-color-green-5);
+	--draad-map-components-filter-chip-remove-focus:   var(--denhaag-color-ocher-5);
 
-	--dm-filter-apply-color-bg: hsl(138 58% 33%);
-	--dm-filter-apply-color-bg-hover: hsl(138 57% 27%);
-	--dm-filter-apply-color-text: hsl(0 0% 100%);
-	--dm-filter-apply-color-focus: hsl(47 100% 25%);   /* ocher-5 */
-	--dm-filter-apply-radius: 3px;
-	--dm-filter-apply-font-weight: 400;               /* --denhaag-button-font-weight: regular */
+	--draad-map-components-filter-apply-color-bg:       var(--denhaag-color-green-3);
+	--draad-map-components-filter-apply-color-bg-hover: var(--denhaag-color-green-4);
+	--draad-map-components-filter-apply-color-text:     var(--denhaag-color-white);
+	--draad-map-components-filter-apply-color-focus:    var(--denhaag-color-ocher-5);
+	--draad-map-components-filter-apply-radius:         var(--denhaag-border-radius);
+	--draad-map-components-filter-apply-font-weight:    var(--denhaag-typography-weight-regular);
 
-	--dm-filter-reset-color-text: hsl(0 0% 48%);       /* --denhaag-color-grey-3 */
-	--dm-filter-reset-color-text-hover: hsl(0 0% 18%); /* --denhaag-color-grey-5 */
-	--dm-filter-reset-color-focus: hsl(47 100% 25%);   /* ocher-5 */
+	--draad-map-components-filter-reset-color-text:       var(--denhaag-color-grey-3);
+	--draad-map-components-filter-reset-color-text-hover: var(--denhaag-color-grey-5);
+	--draad-map-components-filter-reset-color-focus:      var(--denhaag-color-ocher-5);
 
-	--dm-filter-panel-color-bg: hsl(0 0% 100%);
-	--dm-filter-panel-radius: 4px;
-	--dm-filter-panel-shadow: -1px -4px 15px rgba(0, 0, 0, 0.1);
-	--dm-filter-sidebar-color-bg: hsl(0 0% 100%);
-	--dm-filter-empty-color-text: hsl(0 0% 48%);
-	--dm-filter-actions-color-border: hsl(0 0% 82%);   /* grey-2 */
-	--dm-filter-trigger-color-bg-open: hsl(117 28% 87%); /* green-1 */
-	--dm-filter-dropdown-width: 100%;
-	--dm-filter-fieldset-columns: repeat(5, 1fr);
+	--draad-map-components-filter-panel-color-bg:        var(--denhaag-color-white);
+	--draad-map-components-filter-panel-radius:          4px;
+	--draad-map-components-filter-panel-shadow:          -1px -4px 15px rgba(0, 0, 0, 0.1);
+	--draad-map-components-filter-sidebar-color-bg:      var(--denhaag-color-white);
+	--draad-map-components-filter-empty-color-text:      var(--denhaag-color-grey-3);
+	--draad-map-components-filter-actions-color-border:  var(--denhaag-color-grey-2);
+	--draad-map-components-filter-trigger-color-bg-open: var(--denhaag-color-green-1);
+	--draad-map-components-filter-dropdown-width:        100%;
+	--draad-map-components-filter-fieldset-columns:      repeat(5, 1fr);
 
-	--dm-filter-scrollbar-bg: hsl(0 0% 95%);
-	--dm-filter-scrollbar-thumb: hsl(0 0% 82%);
-	--dm-filter-scrollbar-thumb-hover: hsl(0 0% 48%);
+	--draad-map-components-filter-scrollbar-bg:          var(--denhaag-color-grey-1);
+	--draad-map-components-filter-scrollbar-thumb:       var(--denhaag-color-grey-2);
+	--draad-map-components-filter-scrollbar-thumb-hover: var(--denhaag-color-grey-3);
 
 	/* ─── Infowindow (popup) ─────────────────────────────────────────────── */
 
-	--dm-infowindow-bg: hsl(0 0% 100%);
-	--dm-infowindow-text: hsl(0 0% 29%);               /* grey-4 */
-	--dm-infowindow-text-dark: hsl(0 0% 18%);          /* grey-5 */
-	--dm-infowindow-heading: hsl(138 58% 33%);          /* green-3 — matches design */
-	--dm-infowindow-accent: hsl(138 58% 33%);
-	--dm-infowindow-accent-hover: hsl(138 57% 27%);
-	--dm-infowindow-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-	--dm-infowindow-media-bg: hsl(0 0% 95%);
-	--dm-infowindow-font-family: "TheSans", sans-serif;
-	--dm-infowindow-chip-color: hsl(0 0% 29%);         /* grey-4 text in outlined chips */
-	--dm-infowindow-chip-border: hsl(0 0% 82%);        /* grey-2 border for outlined chips */
-	--dm-infowindow-inline-size: 340px;    /* plugin override; upstream default is 360px */
-	--dm-infowindow-media-max-height: 180px;
+	--draad-map-components-infowindow-bg:               var(--denhaag-color-white);
+	--draad-map-components-infowindow-text:             var(--denhaag-color-grey-4);
+	--draad-map-components-infowindow-text-dark:        var(--denhaag-color-grey-5);
+	--draad-map-components-infowindow-heading:          var(--denhaag-color-green-3);
+	--draad-map-components-infowindow-accent:           var(--denhaag-color-green-3);
+	--draad-map-components-infowindow-accent-hover:     var(--denhaag-color-green-4);
+	--draad-map-components-infowindow-shadow:           0 4px 16px rgba(0, 0, 0, 0.12);
+	--draad-map-components-infowindow-media-bg:         var(--denhaag-color-grey-1);
+	--draad-map-components-infowindow-font-family:      var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-infowindow-chip-color:       var(--denhaag-color-grey-4);
+	--draad-map-components-infowindow-chip-border:      var(--denhaag-color-grey-2);
+	--draad-map-components-infowindow-inline-size:      340px;
+	--draad-map-components-infowindow-media-max-height: 180px;
 
 	/* ─── List ───────────────────────────────────────────────────────────── */
 
-	--dm-list-font-family: "TheSans", sans-serif;
-	--dm-list-font-size: 1.125rem;
-	--dm-list-color-primary: hsl(138 58% 33%);
-	--dm-list-color-text-muted: hsl(0 0% 48%);
-	--dm-list-card-background: hsl(0 0% 100%);
-	--dm-list-card-border: hsl(0 0% 82%);
-	--dm-list-card-radius: 3px;
-	--dm-list-card-heading-color: hsl(138 58% 33%);     /* green heading in cards too */
-	--dm-list-card-text-color: hsl(0 0% 29%);
-	--dm-list-chip-bg: transparent;                      /* outlined chips, not filled */
-	--dm-list-chip-border: hsl(0 0% 82%);
-	--dm-list-chip-color: hsl(0 0% 29%);
+	--draad-map-components-list-font-family:        var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-list-font-size:          var(--denhaag-typography-scale-base-font-size);
+	--draad-map-components-list-color-primary:      var(--denhaag-color-green-3);
+	--draad-map-components-list-color-text-muted:   var(--denhaag-color-grey-3);
+	--draad-map-components-list-card-bg:            var(--denhaag-color-white);
+	--draad-map-components-list-card-border:        1px solid var(--denhaag-color-grey-2);
+	--draad-map-components-list-card-radius:        var(--denhaag-border-radius);
+	--draad-map-components-list-card-heading-color: var(--denhaag-color-green-3);
+	--draad-map-components-list-card-text-color:    var(--denhaag-color-grey-4);
+	--draad-map-components-list-chip-bg:            transparent;
+	--draad-map-components-list-chip-border:        var(--denhaag-color-grey-2);
+	--draad-map-components-list-chip-color:         var(--denhaag-color-grey-4);
 
-	--dm-list-toggle-color-bg: hsl(0 0% 100%);
-	--dm-list-toggle-color-bg-hover: hsl(117 28% 87%);
-	--dm-list-toggle-color-border: hsl(138 58% 33%);
-	--dm-list-toggle-color-border-hover: hsl(138 57% 27%);
-	--dm-list-toggle-color-text: hsl(138 58% 33%);
-	--dm-list-toggle-color-focus: hsl(47 100% 25%);    /* ocher-5 */
-	--dm-list-toggle-radius: 3px;
-	--dm-list-toggle-font-family: "TheSans", sans-serif;
-	--dm-list-toggle-font-weight: 400;
+	--draad-map-components-list-toggle-color-bg:          var(--denhaag-color-white);
+	--draad-map-components-list-toggle-color-bg-hover:    var(--denhaag-color-green-1);
+	--draad-map-components-list-toggle-color-border:      var(--denhaag-color-green-3);
+	--draad-map-components-list-toggle-color-border-hover: var(--denhaag-color-green-4);
+	--draad-map-components-list-toggle-color-text:        var(--denhaag-color-green-3);
+	--draad-map-components-list-toggle-color-focus:       var(--denhaag-color-ocher-5);
+	--draad-map-components-list-toggle-radius:            var(--denhaag-border-radius);
+	--draad-map-components-list-toggle-font-family:       var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-list-toggle-font-weight:       var(--denhaag-typography-weight-regular);
+
+	--draad-map-components-list-width: var(--wp--style--global--content-size);
+
+	--draad-map-components-list-pagination-color-active: var(--denhaag-color-green-3);
+	--draad-map-components-list-pagination-focus:        var(--denhaag-color-ocher-5);
 
 	/* ─── Cluster ────────────────────────────────────────────────────────── */
 
-	--dm-cluster-color-bg: hsl(207 80% 35%);           /* --denhaag-color-blue-3 */
-	--dm-cluster-color-bg-outer: hsl(0 0% 100%);       /* --denhaag-color-white */
-	--dm-cluster-color-text: hsl(0 0% 100%);
-	--dm-cluster-font-weight: 700;
+	--draad-map-components-cluster-color-bg:       var(--denhaag-color-blue-3);
+	--draad-map-components-cluster-color-bg-outer: var(--denhaag-color-white);
+	--draad-map-components-cluster-color-text:     var(--denhaag-color-white);
+	--draad-map-components-cluster-font-weight:    var(--denhaag-typography-weight-bold);
 
 	/* ─── Legend ──────────────────────────────────────────────────────────── */
 
-	--dm-legend-bg: hsl(0 0% 100%);
-	--dm-legend-color-text: hsl(0 0% 18%);
-	--dm-legend-color-text-muted: hsl(0 0% 48%);
-	--dm-legend-font-family: "TheSans", sans-serif;
-	--dm-legend-hover-bg: hsl(40 18% 97%);
-	--dm-legend-focus-color: hsl(47 100% 25%);          /* ocher-5 */
-	--dm-legend-checkbox-border: hsl(0 0% 82%);
-	--dm-legend-checkbox-checked-bg: hsl(138 58% 33%);
-	--dm-legend-checkbox-checked-border: hsl(138 58% 33%);
-	--dm-legend-icon-color: hsl(138 58% 33%);
+	--draad-map-components-legend-bg:                      var(--denhaag-color-white);
+	--draad-map-components-legend-color-text:              var(--denhaag-color-grey-5);
+	--draad-map-components-legend-color-text-muted:        var(--denhaag-color-grey-3);
+	--draad-map-components-legend-font-family:             var(--denhaag-typography-sans-serif-font-family);
+	--draad-map-components-legend-hover-bg:                var(--denhaag-color-warmgrey-1);
+	--draad-map-components-legend-focus-color:             var(--denhaag-color-ocher-5);
+	--draad-map-components-legend-checkbox-border:         var(--denhaag-color-grey-2);
+	--draad-map-components-legend-checkbox-checked-bg:     var(--denhaag-color-green-3);
+	--draad-map-components-legend-checkbox-checked-border: var(--denhaag-color-green-3);
+	--draad-map-components-legend-icon-color:              var(--denhaag-color-green-3);
+
+	/* ─── GeoJSON polygons ───────────────────────────────────────────────── */
+
+	--draad-map-components-geojson-color:        var(--denhaag-color-green-3);
+	--draad-map-components-geojson-fill-color:   var(--denhaag-color-green-3);
+	--draad-map-components-geojson-fill-opacity: 0.1;
+}
+
+/* ─── Block display ──────────────────────────────────────────────────────── */
+
+/* dm-map is a custom element; without an explicit display it renders inline.
+   The demo sets this so the map takes full width and aspect-ratio works. */
+.wp-block-draad-map dm-map {
+	display: block;
 }
 
 /* ─── Block-scoped font-family vars ─────────────────────────────────────── */
 
-/* Allows host themes to inject their body font via --body-font-family.
-   These vars cascade into dm-map's shadow DOM via custom-property inheritance.
-   Overridden by the explicit font-family tokens in .wp-block-draad-map dm-map above
-   when --body-font-family is not set by the host theme. */
+/* Define the den Haag font-family vars so they're available as cascade
+   sources. Host WP themes can override --body-font-family to substitute
+   their own font; if they don't, TheSans is used as the fallback. */
 .wp-block-draad-map {
-	--dm-filter-font-family:     var(--body-font-family, "TheSans", sans-serif);
-	--dm-search-font-family:     var(--body-font-family, "TheSans", sans-serif);
-	--dm-infowindow-font-family: var(--body-font-family, "TheSans", sans-serif);
-	--dm-zoom-font-family:       var(--body-font-family, "TheSans", sans-serif);
+	--heading-font-family:                         var(--denhaag-typography-sans-serif-alternate-font-family, "TheMix", sans-serif);
+	--body-font-family:                            var(--denhaag-typography-sans-serif-font-family, "TheSans", sans-serif);
+	--draad-map-components-filter-font-family:     var(--body-font-family);
+	--draad-map-components-search-font-family:     var(--body-font-family);
+	--draad-map-components-infowindow-font-family: var(--body-font-family);
+	--draad-map-components-zoom-font-family:       var(--body-font-family);
 }
 
 /* ─── Shadow DOM structural overrides via ::part() ───────────────────────── */
 
-/* Infowindow panel: wider, Den Haag border-radius */
 .wp-block-draad-map dm-infowindow::part(panel) {
 	inline-size: 340px;
-	border-radius: 3px;
+	border-radius: var(--denhaag-border-radius, 3px);
 }
 
-/* Infowindow close button: compact, 3px radius */
 .wp-block-draad-map dm-infowindow::part(close) {
 	inline-size: 36px;
 	block-size: 36px;
-	border-radius: 3px;
+	border-radius: var(--denhaag-border-radius, 3px);
 }
 
-/* Infowindow image area: taller to show more of the image */
 .wp-block-draad-map dm-infowindow::part(media) {
 	max-block-size: 200px;
 }
 
-/* Infowindow body: comfortable padding */
 .wp-block-draad-map dm-infowindow::part(body) {
 	padding: 1.25rem;
 }
 
-/* Infowindow content: heading in green with TheMix, action button styling */
 .wp-block-draad-map dm-infowindow::part(content) {
-	font-family: "TheSans", sans-serif;
+	font-family: var(--denhaag-typography-sans-serif-font-family, "TheSans", sans-serif);
 }
 
-/* Action links (Naar de website button) */
 .wp-block-draad-map dm-infowindow::part(link) {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
 	margin-block-start: 0.75rem;
 	padding: 0.5rem 1rem;
-	background: hsl(138 58% 33%);
-	color: hsl(0 0% 100%);
+	background: var(--denhaag-color-green-3, hsl(138 58% 33%));
+	color: var(--denhaag-color-white, hsl(0 0% 100%));
 	border: 1px solid transparent;
-	border-radius: 3px;
-	font-family: "TheSans", sans-serif;
-	font-size: 1.125rem;
-	font-weight: 400;
+	border-radius: var(--denhaag-border-radius, 3px);
+	font-family: var(--denhaag-typography-sans-serif-font-family, "TheSans", sans-serif);
+	font-size: var(--denhaag-typography-scale-base-font-size, 1.125rem);
+	font-weight: var(--denhaag-typography-weight-regular, 400);
 	text-decoration: none;
 	cursor: pointer;
 }
 
 .wp-block-draad-map dm-infowindow::part(link):hover {
-	background: hsl(138 57% 27%);
+	background: var(--denhaag-color-green-4, hsl(138 57% 27%));
 }
 
 .wp-block-draad-map dm-infowindow::part(link):focus-visible {
-	outline: 2px dashed hsl(47 100% 25%);
+	outline: 2px dashed var(--denhaag-color-ocher-5, hsl(47 100% 25%));
 	outline-offset: 2px;
 }
 
 /* Baseline for slotted / light-DOM content so it matches the component's
-   intended typography, regardless of the active WP theme. Mirrors the
-   dev HTML's body-level declarations and global img reset — scoped to
-   the block so nothing leaks into the surrounding page. */
+   intended typography, regardless of the active WP theme. Scoped to the
+   block so nothing leaks into the surrounding page. */
 .wp-block-draad-map {
-	font-family: "TheSans", sans-serif;
+	font-family: var(--denhaag-typography-sans-serif-font-family, "TheSans", sans-serif);
 	line-height: 1.3;
-	color: hsl(0 0% 18%);
+	color: var(--denhaag-color-grey-5, hsl(0 0% 18%));
+	box-sizing: border-box;
+}
+
+.wp-block-draad-map *,
+.wp-block-draad-map *::before,
+.wp-block-draad-map *::after {
+	box-sizing: inherit;
+}
+
+.wp-block-draad-map a {
+	color: inherit;
+}
+
+.wp-block-draad-map h1,
+.wp-block-draad-map h2,
+.wp-block-draad-map h3,
+.wp-block-draad-map h4,
+.wp-block-draad-map h5,
+.wp-block-draad-map h6,
+.wp-block-draad-map p,
+.wp-block-draad-map address {
+	margin: 0;
 }
 
 .wp-block-draad-map img,

@@ -66,24 +66,59 @@ function draad_maps_enqueue_frontend_assets() {
 
 	$enqueued = true;
 
-	$iife_path = DRAAD_MAPS_DIR . 'node_modules/draad-maps/dist/draad-maps.iife.js';
-	$iife_url  = DRAAD_MAPS_URL . 'node_modules/draad-maps/dist/draad-maps.iife.js';
+	// Icon sprite must be defined before the IIFE instantiates components.
+	$sprite_path = DRAAD_MAPS_DIR . 'assets/js/denhaag-sprite.js';
+	$sprite_url  = DRAAD_MAPS_URL . 'assets/js/denhaag-sprite.js';
+	$sprite_ver  = file_exists( $sprite_path ) ? filemtime( $sprite_path ) : DRAAD_MAPS_VERSION;
+
+	wp_enqueue_script(
+		'draad-maps-denhaag-sprite',
+		$sprite_url,
+		[],
+		$sprite_ver,
+		false
+	);
+
+	$iife_path = DRAAD_MAPS_DIR . 'node_modules/@draadnl/map-components/dist/draad-maps.iife.js';
+	$iife_url  = DRAAD_MAPS_URL . 'node_modules/@draadnl/map-components/dist/draad-maps.iife.js';
 	$iife_ver  = file_exists( $iife_path ) ? filemtime( $iife_path ) : DRAAD_MAPS_VERSION;
 
 	wp_enqueue_script(
 		'draad-maps',
 		$iife_url,
-		[],
+		[ 'draad-maps-denhaag-sprite' ],
 		$iife_ver,
 		true
 	);
 
-	$markers_url = DRAAD_MAPS_URL . 'node_modules/draad-maps/dist/';
+	$base_url    = DRAAD_MAPS_URL . 'node_modules/@draadnl/map-components/dist/';
+	$markers_base = DRAAD_MAPS_URL . 'assets/markers/';
 
+	// Both globals must be set before the IIFE runs so components read them on first init.
+	// Marker icon attrs are also set here — same timing as the demo's inline module.
 	wp_add_inline_script(
 		'draad-maps',
-		'window.__DRAAD_MAPS_BASE__ = ' . wp_json_encode( $markers_url ) . ';',
+		'window.__DRAAD_MAPS_BASE__ = ' . wp_json_encode( $base_url ) . ';' .
+		'(function(){' .
+			'var b=' . wp_json_encode( $markers_base ) . ';' .
+			'document.querySelectorAll("dm-marker").forEach(function(m){' .
+				'if(!m.getAttribute("icon"))m.setAttribute("icon",b+"marker-green.png");' .
+				'if(!m.getAttribute("icon-hover"))m.setAttribute("icon-hover",b+"marker-hover-green.png");' .
+				'if(!m.getAttribute("icon-active"))m.setAttribute("icon-active",b+"marker-active-green.png");' .
+			'});' .
+		'})();',
 		'before'
+	);
+
+	$tokens_path = DRAAD_MAPS_DIR . 'assets/css/denhaag-tokens.css';
+	$tokens_url  = DRAAD_MAPS_URL . 'assets/css/denhaag-tokens.css';
+	$tokens_ver  = file_exists( $tokens_path ) ? filemtime( $tokens_path ) : DRAAD_MAPS_VERSION;
+
+	wp_enqueue_style(
+		'draad-maps-denhaag-tokens',
+		$tokens_url,
+		[],
+		$tokens_ver
 	);
 
 	$theme_path = DRAAD_MAPS_DIR . 'assets/css/denhaag-theme.css';
@@ -93,7 +128,7 @@ function draad_maps_enqueue_frontend_assets() {
 	wp_enqueue_style(
 		'draad-maps-denhaag-theme',
 		$theme_url,
-		[],
+		[ 'draad-maps-denhaag-tokens' ],
 		$theme_ver
 	);
 }
