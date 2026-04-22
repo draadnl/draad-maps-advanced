@@ -3,7 +3,9 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
+		"prebuild": "node scripts/wrap-tokens.js",
 		"build": "wp-scripts build",
+		"prestart": "node scripts/wrap-tokens.js",
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
