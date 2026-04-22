@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Draad Maps
+ * Plugin Name: Draad Maps Advanced
  * Plugin URI:  https://draad.nl
  * Description: Create and embed interactive maps using the draad-maps web component library.
  * Version:     1.2.1
