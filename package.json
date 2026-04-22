@@ -1,10 +1,11 @@
 {
 	"name": "draad-maps-plugin",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"private": true,
 	"scripts": {
 		"prebuild": "node scripts/wrap-tokens.js",
 		"build": "wp-scripts build",
+		"postbuild": "mkdir -p assets/vendor && cp node_modules/@draadnl/map-components/dist/draad-maps.iife.js assets/vendor/draad-maps.iife.js",
 		"prestart": "node scripts/wrap-tokens.js",
 		"start": "wp-scripts start"
 	},

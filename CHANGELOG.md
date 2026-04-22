@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-04-22
+
+### Fixed
+- IIFE is now copied to `assets/vendor/` during build so it is web-accessible when installed from the release zip. Previously the plugin served it from `node_modules/`, which is excluded from the distribution archive.
+- `scripts/` directory excluded from release zip via `.distignore`.
+
 ## [1.2.0] - 2026-04-22
 
 ### Added
