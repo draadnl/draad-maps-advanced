@@ -1,6 +1,6 @@
 {
 	"name": "draad-maps-advanced",
-	"version": "1.2.6",
+	"version": "1.2.8",
 	"private": true,
 	"scripts": {
 		"prebuild": "node scripts/wrap-tokens.js",
