@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Verify version consistency
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PHP_VERSION=$(grep -m1 '^\s*\*\s*Version:' draad-maps-plugin.php | sed 's/.*Version:\s*//' | tr -d '[:space:]')
+          PKG_VERSION=$(node -p "require('./package.json').version")
+
+          echo "Tag:          $TAG"
+          echo "PHP header:   $PHP_VERSION"
+          echo "package.json: $PKG_VERSION"
+
+          if [ "$TAG" != "$PHP_VERSION" ] || [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Version mismatch — tag ($TAG), PHP header ($PHP_VERSION), package.json ($PKG_VERSION) must all match."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        run: npm run build
+
+      - name: Extract changelog section
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          awk "/^## \[$TAG\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "::error::No changelog section found for [$TAG] in CHANGELOG.md. Add an entry before tagging."
+            exit 1
+          fi
+
+      - name: Stage plugin directory
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          rsync -a --exclude-from=.distignore ./ /tmp/draad-maps-plugin/
+          cd /tmp && zip -r "draad-maps-plugin-${TAG}.zip" draad-maps-plugin
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: /tmp/draad-maps-plugin-*.zip
+          fail_on_unmatched_files: true
