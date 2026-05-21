@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Block renamed from `draad/map` to `draad/map-advanced`. Generated wrapper class is now `.wp-block-draad-map-advanced`; theme and token CSS selectors updated to match. Existing posts using `draad/map` will need to be re-inserted or migrated.
 
+## [1.2.9] - 2026-05-18
+
+### Fixed
+- Renamed the map post type registration function to `draad_maps_register_map_post_type` and guarded it with `function_exists()` to prevent a fatal name clash with the legacy `draad-kaarten` plugin during map migration.
+
 ## [1.2.8] - 2026-04-22
 
 ### Fixed

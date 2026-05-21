@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DRAAD_MAPS_VERSION', '1.2.8' );
+define( 'DRAAD_MAPS_VERSION', '1.3.0' );
 define( 'DRAAD_MAPS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DRAAD_MAPS_URL', plugin_dir_url( __FILE__ ) );
 
