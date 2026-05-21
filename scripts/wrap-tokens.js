@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Wraps @gemeente-denhaag/design-tokens CSS in .wp-block-draad-map so tokens
+ * Wraps @gemeente-denhaag/design-tokens CSS in .wp-block-draad-map-advanced so tokens
  * are scoped to the block and don't pollute the global :root cascade.
  */
 
@@ -14,7 +14,7 @@ const src = path.resolve(
 const dest = path.resolve( __dirname, '../assets/css/denhaag-tokens.css' );
 
 const input = fs.readFileSync( src, 'utf8' );
-const output = input.replace( /:root\s*\{/, '.wp-block-draad-map {' );
+const output = input.replace( /:root\s*\{/, '.wp-block-draad-map-advanced {' );
 
 fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 fs.writeFileSync( dest, output, 'utf8' );
