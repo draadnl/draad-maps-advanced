@@ -3,7 +3,7 @@
  * Plugin Name: Draad Maps Advanced
  * Plugin URI:  https://draad.nl
  * Description: Create and embed interactive maps using the draad-maps web component library.
- * Version:     1.2.8
+ * Version:     1.3.0
  * Author:      Draad
  * License:     GPL-2.0-or-later
  * Text Domain: draad-maps
