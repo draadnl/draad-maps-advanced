@@ -143,10 +143,26 @@ function draad_maps_render_post_query( array $config ): string {
 		}
 
 		if ( is_array( $coords ) ) {
-			if ( empty( $coords['lat'] ) || empty( $coords['lng'] ) ) {
-				continue;
+			// Pronamic Leaflet Map: top-level lat/lng is the map *center*
+			// (set even when no marker is placed). The actual location lives
+			// in the "markers" sub-array — treat an empty markers array as
+			// "no location".
+			if ( isset( $coords['markers'] ) && is_array( $coords['markers'] ) ) {
+				if ( empty( $coords['markers'] ) ) {
+					continue;
+				}
+				$marker = reset( $coords['markers'] );
+				if ( ! is_array( $marker ) || empty( $marker['lat'] ) || empty( $marker['lng'] ) ) {
+					continue;
+				}
+				$center = $marker['lat'] . ',' . $marker['lng'];
+			} else {
+				// Plain array (e.g., ACF Google Map): lat/lng at top level.
+				if ( empty( $coords['lat'] ) || empty( $coords['lng'] ) ) {
+					continue;
+				}
+				$center = $coords['lat'] . ',' . $coords['lng'];
 			}
-			$center = $coords['lat'] . ',' . $coords['lng'];
 		} else {
 			$center = $coords;
 		}
