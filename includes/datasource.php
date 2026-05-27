@@ -82,6 +82,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$label             = $config['label'] ?? __( 'Locaties', 'draad-maps' );
 	$filter_properties = $config['filter_properties'] ?? '';
 	$filter_labels     = $config['filter_labels'] ?? '';
+	$map_action_label  = $config['_map_action_label'] ?? '';
 
 	if ( ! $post_type || ! $location_field ) {
 		return '';
@@ -175,9 +176,13 @@ function draad_maps_render_post_query( array $config ): string {
 		// Resolve action URL: prefer website field, fall back to permalink.
 		$website_url = $website_field ? draad_maps_get_post_field( $post, $website_field ) : '';
 		$action_url  = $website_url ?: $permalink;
-		$action_text = $website_url
-			? __( 'Naar de website', 'draad-maps' )
-			: __( 'Lees meer', 'draad-maps' );
+		if ( $map_action_label !== '' ) {
+			$action_text = $map_action_label;
+		} else {
+			$action_text = $website_url
+				? __( 'Naar de website', 'draad-maps' )
+				: __( 'Lees meer', 'draad-maps' );
+		}
 
 		// Resolve taxonomy terms for chips.
 		$term_names = [];

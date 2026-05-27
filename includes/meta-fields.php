@@ -54,6 +54,16 @@ function draad_maps_register_meta_fields() {
 			'default'           => 2,
 			'sanitize_callback' => 'absint',
 		],
+		'_draad_map_action_label' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'_draad_map_list_hide_address' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
 	];
 
 	foreach ( $fields as $key => $args ) {

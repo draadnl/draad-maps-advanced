@@ -40,6 +40,8 @@ function draad_maps_render_settings_box( $post ) {
 	$list_enabled        = get_post_meta( $post->ID, '_draad_map_list_enabled', true );
 	$list_columns        = get_post_meta( $post->ID, '_draad_map_list_columns', true );
 	$list_columns        = $list_columns !== '' ? (int) $list_columns : 2;
+	$list_hide_address   = get_post_meta( $post->ID, '_draad_map_list_hide_address', true );
+	$action_label        = get_post_meta( $post->ID, '_draad_map_action_label', true );
 	?>
 	<table class="form-table">
 		<tr>
@@ -173,6 +175,30 @@ function draad_maps_render_settings_box( $post ) {
 					<option value="4" <?php selected( $list_columns, 4 ); ?>>4</option>
 				</select>
 				<p class="description"><?php esc_html_e( 'Hoeveel kaarten er per rij worden getoond.', 'draad-maps' ); ?></p>
+				<br />
+				<label>
+					<input
+						type="checkbox"
+						name="draad_map_list_hide_address"
+						value="1"
+						<?php checked( $list_hide_address, '1' ); ?>
+					/>
+					<?php esc_html_e( 'Adres in lijstkaarten verbergen', 'draad-maps' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'Verbergt het adresveld in de lijstweergave, ook als het is ingevuld.', 'draad-maps' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="draad_map_action_label"><?php esc_html_e( 'Knoplabel', 'draad-maps' ); ?></label></th>
+			<td>
+				<input
+					type="text"
+					id="draad_map_action_label"
+					name="draad_map_action_label"
+					value="<?php echo esc_attr( $action_label ); ?>"
+					class="regular-text"
+				/>
+				<p class="description"><?php esc_html_e( 'Label voor de actieknop in pop-ups en lijstkaarten. Laat leeg voor de standaardtekst ("Naar de website" / "Lees meer").', 'draad-maps' ); ?></p>
 			</td>
 		</tr>
 	</table>
@@ -742,6 +768,8 @@ function draad_maps_save_meta( $post_id, $post ) {
 	update_post_meta( $post_id, '_draad_map_filter_enabled', isset( $_POST['draad_map_filter_enabled'] ) ? '1' : '' );
 	update_post_meta( $post_id, '_draad_map_list_enabled', isset( $_POST['draad_map_list_enabled'] ) ? '1' : '' );
 	update_post_meta( $post_id, '_draad_map_list_columns', absint( $_POST['draad_map_list_columns'] ?? 2 ) );
+	update_post_meta( $post_id, '_draad_map_list_hide_address', isset( $_POST['draad_map_list_hide_address'] ) ? '1' : '' );
+	update_post_meta( $post_id, '_draad_map_action_label', sanitize_text_field( wp_unslash( $_POST['draad_map_action_label'] ?? '' ) ) );
 
 	if ( isset( $_POST['draad_map_datasources'] ) ) {
 		$json = wp_unslash( $_POST['draad_map_datasources'] );

@@ -19,9 +19,11 @@ function draad_maps_render( int $map_id ): string {
 		$datasources = [];
 	}
 
-	$search_enabled = get_post_meta( $map_id, '_draad_map_search_enabled', true );
-	$filter_enabled = get_post_meta( $map_id, '_draad_map_filter_enabled', true );
-	$list_enabled   = get_post_meta( $map_id, '_draad_map_list_enabled', true );
+	$search_enabled    = get_post_meta( $map_id, '_draad_map_search_enabled', true );
+	$filter_enabled    = get_post_meta( $map_id, '_draad_map_filter_enabled', true );
+	$list_enabled      = get_post_meta( $map_id, '_draad_map_list_enabled', true );
+	$list_hide_address = get_post_meta( $map_id, '_draad_map_list_hide_address', true );
+	$action_label      = get_post_meta( $map_id, '_draad_map_action_label', true );
 
 	$output = '<dm-map center="' . esc_attr( $center ) . '" zoom="' . esc_attr( $zoom ) . '">';
 
@@ -87,15 +89,21 @@ function draad_maps_render( int $map_id ): string {
 		}
 
 		if ( $has_post_query ) {
+			$list_action_text = $action_label !== ''
+				? $action_label
+				: __( 'Naar de website', 'draad-maps' );
+
 			$output .= '<template>';
 			$output .= '<a data-href="properties.url">';
 			$output .= '<img data-src="properties.image" alt="" />';
 			$output .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
 			$output .= '<h3 data-field="properties.title"></h3>';
-			$output .= '<span class="address" data-field="properties.address"></span>';
+			if ( ! $list_hide_address ) {
+				$output .= '<span class="address" data-field="properties.address"></span>';
+			}
 			$output .= '<p data-field="properties.description"></p>';
 			$output .= '<span class="chips" data-chips="properties.chips"></span>';
-			$output .= '<span class="action">' . esc_html__( 'Naar de website', 'draad-maps' ) . '</span>';
+			$output .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
 			$output .= '</a>';
 			$output .= '</template>';
 		}
@@ -104,8 +112,9 @@ function draad_maps_render( int $map_id ): string {
 	}
 
 	foreach ( $datasources as $ds ) {
-		$type    = $ds['type'] ?? '';
-		$output .= draad_maps_render_datasource( $type, $ds );
+		$ds['_map_action_label'] = $action_label;
+		$type                    = $ds['type'] ?? '';
+		$output                 .= draad_maps_render_datasource( $type, $ds );
 	}
 
 	$output .= '</dm-map>';
