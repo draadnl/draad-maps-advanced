@@ -168,7 +168,7 @@ function draad_maps_render_post_query( array $config ): string {
 		}
 
 		$marker_id = 'dm-marker-' . $post->ID;
-		$permalink = ! empty( $post->post_content ) ? get_permalink( $post->ID ) : '';
+		$permalink = (string) get_permalink( $post->ID );
 
 		// Resolve image URL.
 		$img_url = '';
