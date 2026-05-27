@@ -469,7 +469,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	const lookupUrl  = wrapper.dataset.pdokLookupUrl;
 	const i18n       = ( window.draadMapsAdmin || {} ).i18n || {};
 
-	searchInput.placeholder = i18n.searchPlaceholder || 'Zoek een adres of plaats…';
+	searchInput.placeholder = i18n.searchPlaceholder || 'Search an address or place…';
 
 	let debounceTimer  = null;
 	let abortCtrl      = null;
@@ -504,7 +504,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	function updateCoords( coords ) {
 		hiddenCoords.value = coords;
-		coordsEl.textContent = coords ? ( i18n.coordinatesLabel || 'Coördinaten: ' ) + coords : '';
+		coordsEl.textContent = coords ? ( i18n.coordinatesLabel || 'Coordinates: ' ) + coords : '';
 	}
 
 	// -- Suggest --
@@ -527,7 +527,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			} )
 			.catch( ( err ) => {
 				if ( err.name === 'AbortError' ) return;
-				listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchError || 'Locatieservice niet bereikbaar.' ) + '</li>';
+				listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchError || 'Location service unreachable.' ) + '</li>';
 				openListbox();
 			} );
 	}
@@ -535,7 +535,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	function renderOptions( docs ) {
 		listbox.innerHTML = '';
 		if ( ! docs.length ) {
-			listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchNoResults || 'Geen resultaten gevonden.' ) + '</li>';
+			listbox.innerHTML = '<li class="draad-location-search__no-results">' + ( i18n.searchNoResults || 'No results found.' ) + '</li>';
 			openListbox();
 			return;
 		}

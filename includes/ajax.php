@@ -59,7 +59,7 @@ function draad_maps_ajax_fetch_geojson_properties() {
 	$type = isset( $_POST['type'] ) ? sanitize_key( $_POST['type'] ) : 'geojson_url';
 
 	if ( ! $url || ! wp_http_validate_url( $url ) ) {
-		wp_send_json_error( __( 'Ongeldige URL.', 'draad-maps' ) );
+		wp_send_json_error( __( 'Invalid URL.', 'draad-maps' ) );
 	}
 
 	$fetch_url = $url;
@@ -67,7 +67,7 @@ function draad_maps_ajax_fetch_geojson_properties() {
 	if ( 'wfs' === $type ) {
 		$typename = isset( $_POST['typename'] ) ? sanitize_text_field( wp_unslash( $_POST['typename'] ) ) : '';
 		if ( ! $typename ) {
-			wp_send_json_error( __( 'TypeName is vereist voor WFS-bronnen.', 'draad-maps' ) );
+			wp_send_json_error( __( 'TypeName is required for WFS sources.', 'draad-maps' ) );
 		}
 		$separator = str_contains( $url, '?' ) ? '&' : '?';
 		$fetch_url = $url . $separator . http_build_query( [
@@ -91,7 +91,7 @@ function draad_maps_ajax_fetch_geojson_properties() {
 
 	$code = wp_remote_retrieve_response_code( $response );
 	if ( $code < 200 || $code >= 300 ) {
-		wp_send_json_error( sprintf( __( 'De externe server gaf HTTP %d terug.', 'draad-maps' ), $code ) );
+		wp_send_json_error( sprintf( __( 'The external server returned HTTP %d.', 'draad-maps' ), $code ) );
 	}
 
 	$body         = wp_remote_retrieve_body( $response );
@@ -103,7 +103,7 @@ function draad_maps_ajax_fetch_geojson_properties() {
 	$data = json_decode( $body, true );
 
 	if ( ! is_array( $data ) || empty( $data['features'] ) || ! is_array( $data['features'] ) ) {
-		wp_send_json_error( __( 'Geen objecten gevonden in de respons.', 'draad-maps' ) );
+		wp_send_json_error( __( 'No features found in the response.', 'draad-maps' ) );
 	}
 
 	// Merge property keys from up to 5 features for completeness.
@@ -119,7 +119,7 @@ function draad_maps_ajax_fetch_geojson_properties() {
 	$keys = array_values( array_unique( $keys ) );
 
 	if ( empty( $keys ) ) {
-		wp_send_json_error( __( 'Geen eigenschappen gevonden in de objecten.', 'draad-maps' ) );
+		wp_send_json_error( __( 'No properties found in the features.', 'draad-maps' ) );
 	}
 
 	wp_send_json_success( $keys );

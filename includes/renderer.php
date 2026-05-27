@@ -91,7 +91,7 @@ function draad_maps_render( int $map_id ): string {
 		if ( $has_post_query ) {
 			$list_action_text = $action_label !== ''
 				? $action_label
-				: __( 'Naar de website', 'draad-maps' );
+				: __( 'Visit website', 'draad-maps' );
 
 			$output .= '<template>';
 			$output .= '<a data-href="properties.url">';

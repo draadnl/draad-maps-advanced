@@ -7,6 +7,7 @@
  * Author:      Draad
  * License:     GPL-2.0-or-later
  * Text Domain: draad-maps
+ * Domain Path: /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,6 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'DRAAD_MAPS_VERSION', '1.3.0' );
 define( 'DRAAD_MAPS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DRAAD_MAPS_URL', plugin_dir_url( __FILE__ ) );
+
+add_action( 'init', 'draad_maps_load_textdomain' );
+
+function draad_maps_load_textdomain() {
+	load_plugin_textdomain( 'draad-maps', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
 
 require_once DRAAD_MAPS_DIR . 'includes/ajax.php';
 require_once DRAAD_MAPS_DIR . 'includes/proxy.php';
