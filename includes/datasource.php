@@ -93,8 +93,13 @@ function draad_maps_render_post_query( array $config ): string {
 		'post_type'      => sanitize_text_field( $post_type ),
 		'posts_per_page' => -1,
 		'post_status'    => 'publish',
-		'meta_key'       => sanitize_text_field( $location_field ),
-		'meta_compare'   => 'EXISTS',
+		'meta_query'     => [
+			[
+				'key'     => sanitize_text_field( $location_field ),
+				'value'   => '',
+				'compare' => '!=',
+			],
+		],
 	] );
 
 	if ( empty( $posts ) ) {
@@ -214,11 +219,14 @@ function draad_maps_render_post_query( array $config ): string {
 			// Check if this property is a taxonomy.
 			if ( taxonomy_exists( $prop_key ) ) {
 				$tax_terms = wp_get_post_terms( $post->ID, $prop_key, [ 'fields' => 'names' ] );
-				$props[ $prop_key ] = ( ! is_wp_error( $tax_terms ) && ! empty( $tax_terms ) )
-					? implode( ', ', $tax_terms )
-					: '';
+				if ( ! is_wp_error( $tax_terms ) && ! empty( $tax_terms ) ) {
+					$props[ $prop_key ] = implode( ', ', $tax_terms );
+				}
 			} else {
-				$props[ $prop_key ] = (string) get_post_meta( $post->ID, $prop_key, true );
+				$value = (string) get_post_meta( $post->ID, $prop_key, true );
+				if ( $value !== '' ) {
+					$props[ $prop_key ] = $value;
+				}
 			}
 		}
 		$props_attr = ! empty( $props ) ? ' properties="' . esc_attr( wp_json_encode( $props ) ) . '"' : '';
