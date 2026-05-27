@@ -104,7 +104,7 @@ function draad_maps_render( int $map_id ): string {
 		if ( $has_post_query ) {
 			$list_action_text = $action_label !== ''
 				? $action_label
-				: __( 'Visit website', 'draad-maps' );
+				: __( 'Read more', 'draad-maps' );
 
 			$output .= '<template>';
 			// Hide the action button on cards whose link has no href (i.e.,

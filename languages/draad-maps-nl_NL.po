@@ -112,8 +112,8 @@ msgstr "Verbergt het adresveld in de lijstweergave, ook als het is ingevuld."
 msgid "Button label"
 msgstr "Knoplabel"
 
-msgid "Label for the action button on popups and list cards. Leave empty for the default (\"Visit website\" / \"Read more\")."
-msgstr "Label voor de actieknop in pop-ups en lijstkaarten. Laat leeg voor de standaardtekst (\"Naar de website\" / \"Lees meer\")."
+msgid "Label for the action button on popups and list cards. Leave empty for the default (\"Read more\")."
+msgstr "Label voor de actieknop in pop-ups en lijstkaarten. Laat leeg voor de standaardtekst (\"Lees meer\")."
 
 msgid "Data source %d"
 msgstr "Databron %d"
@@ -327,9 +327,6 @@ msgstr "Locatieservice niet bereikbaar."
 
 msgid "Locations"
 msgstr "Locaties"
-
-msgid "Visit website"
-msgstr "Naar de website"
 
 msgid "Read more"
 msgstr "Lees meer"

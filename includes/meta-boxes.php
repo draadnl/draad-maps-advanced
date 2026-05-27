@@ -198,7 +198,7 @@ function draad_maps_render_settings_box( $post ) {
 					value="<?php echo esc_attr( $action_label ); ?>"
 					class="regular-text"
 				/>
-				<p class="description"><?php esc_html_e( 'Label for the action button on popups and list cards. Leave empty for the default ("Visit website" / "Read more").', 'draad-maps' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Label for the action button on popups and list cards. Leave empty for the default ("Read more").', 'draad-maps' ); ?></p>
 			</td>
 		</tr>
 	</table>

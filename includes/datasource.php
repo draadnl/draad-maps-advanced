@@ -192,13 +192,9 @@ function draad_maps_render_post_query( array $config ): string {
 		// Resolve action URL: prefer website field, fall back to permalink.
 		$website_url = $website_field ? draad_maps_get_post_field( $post, $website_field ) : '';
 		$action_url  = $website_url ?: $permalink;
-		if ( $map_action_label !== '' ) {
-			$action_text = $map_action_label;
-		} else {
-			$action_text = $website_url
-				? __( 'Visit website', 'draad-maps' )
-				: __( 'Read more', 'draad-maps' );
-		}
+		$action_text = $map_action_label !== ''
+			? $map_action_label
+			: __( 'Read more', 'draad-maps' );
 
 		// Resolve taxonomy terms for chips.
 		$term_names = [];
