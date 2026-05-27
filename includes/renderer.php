@@ -94,6 +94,10 @@ function draad_maps_render( int $map_id ): string {
 				: __( 'Visit website', 'draad-maps' );
 
 			$output .= '<template>';
+			// Hide the action button on cards whose link has no href (i.e.,
+			// posts with no website and no post content). The bundle strips
+			// the href attribute when properties.url is empty.
+			$output .= '<style>a:not([href]) .action{display:none}</style>';
 			$output .= '<a data-href="properties.url">';
 			$output .= '<img data-src="properties.image" alt="" />';
 			$output .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
