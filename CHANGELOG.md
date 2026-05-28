@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-05-27
+
+### Added
+- Per-map "Button label" setting — overrides the action button text on both info windows and list cards.
+- Per-map "Hide address in list cards" toggle — suppresses the address line in the list view even when posts have an address.
+- Dutch translation file (`languages/draad-maps-nl_NL.po`/`.mo`) and `load_plugin_textdomain` hook. Source strings are now English; Dutch is delivered via translation.
+- `menu_name` label set to "Kaarten (v2)" (via translation) to distinguish from the legacy `draad-kaarten` menu.
+
+### Changed
+- Updated `@draadnl/map-components` to 0.5.3, which translates the remaining English component UI strings to Dutch (info window labels, map canvas label, tile attribution, search result fallback, and others). Rebuilt the bundled `assets/vendor/draad-maps.iife.js`.
+
+### Fixed
+- `post_query` data source now uses a `meta_query` that requires a non-empty location value, so posts without a location no longer appear in the list view.
+- Filter no longer renders empty chips: empty meta values and missing taxonomy terms are skipped when building marker properties.
+
 ## [1.3.0] - 2026-05-21
 
 ### Changed

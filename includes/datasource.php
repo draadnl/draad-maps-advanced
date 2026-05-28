@@ -79,9 +79,10 @@ function draad_maps_render_post_query( array $config ): string {
 	$address_field     = $config['address_field'] ?? '';
 	$website_field     = $config['website_field'] ?? '';
 	$terms_taxonomy    = $config['terms_taxonomy'] ?? '';
-	$label             = $config['label'] ?? __( 'Locaties', 'draad-maps' );
+	$label             = $config['label'] ?? __( 'Locations', 'draad-maps' );
 	$filter_properties = $config['filter_properties'] ?? '';
 	$filter_labels     = $config['filter_labels'] ?? '';
+	$map_action_label  = $config['_map_action_label'] ?? '';
 
 	if ( ! $post_type || ! $location_field ) {
 		return '';
@@ -93,8 +94,13 @@ function draad_maps_render_post_query( array $config ): string {
 		'post_type'      => sanitize_text_field( $post_type ),
 		'posts_per_page' => -1,
 		'post_status'    => 'publish',
-		'meta_key'       => sanitize_text_field( $location_field ),
-		'meta_compare'   => 'EXISTS',
+		'meta_query'     => [
+			[
+				'key'     => sanitize_text_field( $location_field ),
+				'value'   => '',
+				'compare' => '!=',
+			],
+		],
 	] );
 
 	if ( empty( $posts ) ) {
@@ -103,31 +109,31 @@ function draad_maps_render_post_query( array $config ): string {
 
 	$layer_name         = sanitize_title( $label );
 	$filter_props_array = $filter_properties ? array_map( 'trim', explode( ',', $filter_properties ) ) : [];
+	$filter_labels_arr  = $filter_labels ? array_map( 'trim', explode( ',', $filter_labels ) ) : [];
 
-	// Include taxonomy as a filter property when set.
-	$all_filter_properties = $filter_properties;
-	$all_filter_labels     = $filter_labels;
+	// Filter properties + labels merged with the taxonomy entry (if any).
+	// Built as ordered pairs so we can drop entries that end up with no
+	// values across the layer's posts — the bundle gets stuck on
+	// "Loading data..." for filter sections whose declared property has
+	// zero values, so we only emit properties that actually have data.
+	$declared_props = [];
+	foreach ( $filter_props_array as $i => $prop_key ) {
+		$prop_key = trim( $prop_key );
+		if ( $prop_key === '' ) {
+			continue;
+		}
+		$declared_props[ $prop_key ] = $filter_labels_arr[ $i ] ?? $prop_key;
+	}
 	if ( $terms_taxonomy ) {
 		$tax_obj   = get_taxonomy( $terms_taxonomy );
 		$tax_label = $tax_obj ? $tax_obj->label : $terms_taxonomy;
 
-		$all_filter_properties = $all_filter_properties
-			? $all_filter_properties . ',' . $terms_taxonomy
-			: $terms_taxonomy;
-		$all_filter_labels = $all_filter_labels
-			? $all_filter_labels . ',' . $tax_label
-			: $tax_label;
+		$declared_props[ $terms_taxonomy ] = $tax_label;
 	}
 
-	$output = '<dm-layer id="' . esc_attr( $layer_name ) . '" name="' . esc_attr( $layer_name ) . '" label="' . esc_attr( $label ) . '"';
-	if ( $all_filter_properties ) {
-		$output .= ' filter-properties="' . esc_attr( $all_filter_properties ) . '"';
-	}
-	if ( $all_filter_labels ) {
-		$output .= ' filter-labels="' . esc_attr( $all_filter_labels ) . '"';
-	}
-	$output     .= '>';
-	$infowindows = '';
+	$active_filter_props = [];
+	$markers_html        = '';
+	$infowindows         = '';
 
 	foreach ( $posts as $post ) {
 		$coords = get_post_meta( $post->ID, $location_field, true );
@@ -137,16 +143,32 @@ function draad_maps_render_post_query( array $config ): string {
 		}
 
 		if ( is_array( $coords ) ) {
-			if ( empty( $coords['lat'] ) || empty( $coords['lng'] ) ) {
-				continue;
+			// Pronamic Leaflet Map: top-level lat/lng is the map *center*
+			// (set even when no marker is placed). The actual location lives
+			// in the "markers" sub-array — treat an empty markers array as
+			// "no location".
+			if ( isset( $coords['markers'] ) && is_array( $coords['markers'] ) ) {
+				if ( empty( $coords['markers'] ) ) {
+					continue;
+				}
+				$marker = reset( $coords['markers'] );
+				if ( ! is_array( $marker ) || empty( $marker['lat'] ) || empty( $marker['lng'] ) ) {
+					continue;
+				}
+				$center = $marker['lat'] . ',' . $marker['lng'];
+			} else {
+				// Plain array (e.g., ACF Google Map): lat/lng at top level.
+				if ( empty( $coords['lat'] ) || empty( $coords['lng'] ) ) {
+					continue;
+				}
+				$center = $coords['lat'] . ',' . $coords['lng'];
 			}
-			$center = $coords['lat'] . ',' . $coords['lng'];
 		} else {
 			$center = $coords;
 		}
 
 		$marker_id = 'dm-marker-' . $post->ID;
-		$permalink = ! empty( $post->post_content ) ? get_permalink( $post->ID ) : '';
+		$permalink = (string) get_permalink( $post->ID );
 
 		// Resolve image URL.
 		$img_url = '';
@@ -170,9 +192,9 @@ function draad_maps_render_post_query( array $config ): string {
 		// Resolve action URL: prefer website field, fall back to permalink.
 		$website_url = $website_field ? draad_maps_get_post_field( $post, $website_field ) : '';
 		$action_url  = $website_url ?: $permalink;
-		$action_text = $website_url
-			? __( 'Naar de website', 'draad-maps' )
-			: __( 'Lees meer', 'draad-maps' );
+		$action_text = $map_action_label !== ''
+			? $map_action_label
+			: __( 'Read more', 'draad-maps' );
 
 		// Resolve taxonomy terms for chips.
 		$term_names = [];
@@ -206,25 +228,34 @@ function draad_maps_render_post_query( array $config ): string {
 		if ( ! empty( $term_names ) ) {
 			$props['chips'] = implode( ', ', $term_names );
 			if ( $terms_taxonomy ) {
-				$props[ $terms_taxonomy ] = implode( ', ', $term_names );
+				$props[ $terms_taxonomy ]            = implode( ', ', $term_names );
+				$active_filter_props[ $terms_taxonomy ] = true;
 			}
 		}
 		foreach ( $filter_props_array as $prop_key ) {
 			$prop_key = trim( $prop_key );
+			if ( $prop_key === '' ) {
+				continue;
+			}
 			// Check if this property is a taxonomy.
 			if ( taxonomy_exists( $prop_key ) ) {
 				$tax_terms = wp_get_post_terms( $post->ID, $prop_key, [ 'fields' => 'names' ] );
-				$props[ $prop_key ] = ( ! is_wp_error( $tax_terms ) && ! empty( $tax_terms ) )
-					? implode( ', ', $tax_terms )
-					: '';
+				if ( ! is_wp_error( $tax_terms ) && ! empty( $tax_terms ) ) {
+					$props[ $prop_key ]              = implode( ', ', $tax_terms );
+					$active_filter_props[ $prop_key ] = true;
+				}
 			} else {
-				$props[ $prop_key ] = (string) get_post_meta( $post->ID, $prop_key, true );
+				$value = (string) get_post_meta( $post->ID, $prop_key, true );
+				if ( $value !== '' ) {
+					$props[ $prop_key ]              = $value;
+					$active_filter_props[ $prop_key ] = true;
+				}
 			}
 		}
 		$props_attr = ! empty( $props ) ? ' properties="' . esc_attr( wp_json_encode( $props ) ) . '"' : '';
 
 		if ( $has_infowindow ) {
-			$output .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $props_attr . '></dm-marker>';
+			$markers_html .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $props_attr . '></dm-marker>';
 
 			$infowindow = '<dm-infowindow for="' . esc_attr( $marker_id ) . '">';
 
@@ -263,11 +294,28 @@ function draad_maps_render_post_query( array $config ): string {
 			$infowindow .= '</dm-infowindow>';
 			$infowindows .= $infowindow;
 		} else {
-			$url_attr = $permalink ? ' data-url="' . esc_url( $permalink ) . '"' : '';
-			$output  .= '<dm-marker center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $url_attr . $props_attr . '></dm-marker>';
+			$url_attr      = $permalink ? ' data-url="' . esc_url( $permalink ) . '"' : '';
+			$markers_html .= '<dm-marker center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $url_attr . $props_attr . '></dm-marker>';
 		}
 	}
 
+	// Keep only declared filter properties that produced at least one value.
+	$emit_props  = [];
+	$emit_labels = [];
+	foreach ( $declared_props as $prop_key => $prop_label ) {
+		if ( isset( $active_filter_props[ $prop_key ] ) ) {
+			$emit_props[]  = $prop_key;
+			$emit_labels[] = $prop_label;
+		}
+	}
+
+	$output = '<dm-layer id="' . esc_attr( $layer_name ) . '" name="' . esc_attr( $layer_name ) . '" label="' . esc_attr( $label ) . '"';
+	if ( ! empty( $emit_props ) ) {
+		$output .= ' filter-properties="' . esc_attr( implode( ',', $emit_props ) ) . '"';
+		$output .= ' filter-labels="' . esc_attr( implode( ',', $emit_labels ) ) . '"';
+	}
+	$output .= '>';
+	$output .= $markers_html;
 	$output .= '</dm-layer>';
 	$output .= $infowindows;
 

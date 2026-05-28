@@ -54,6 +54,16 @@ function draad_maps_register_meta_fields() {
 			'default'           => 2,
 			'sanitize_callback' => 'absint',
 		],
+		'_draad_map_action_label' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'_draad_map_list_hide_address' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
 	];
 
 	foreach ( $fields as $key => $args ) {
@@ -183,7 +193,7 @@ function draad_maps_maybe_migrate_datasources() {
 		if ( $type === 'post_query' ) {
 			$ds[] = [
 				'type'              => 'post_query',
-				'label'             => __( 'Locaties', 'draad-maps' ),
+				'label'             => __( 'Locations', 'draad-maps' ),
 				'post_type'         => get_post_meta( $map_id, '_draad_map_datasource_post_type', true ),
 				'location_field'    => get_post_meta( $map_id, '_draad_map_datasource_location_field', true ),
 				'title_field'       => '',

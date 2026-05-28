@@ -1,0 +1,333 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Draad Maps Advanced 1.3.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-27 00:00+0000\n"
+"PO-Revision-Date: 2026-05-27 00:00+0000\n"
+"Last-Translator: Draad\n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: draad-maps\n"
+
+msgid "Maps"
+msgstr "Kaarten"
+
+msgid "Map"
+msgstr "Kaart"
+
+msgid "Maps (v2)"
+msgstr "Kaarten (v2)"
+
+msgid "Add new map"
+msgstr "Nieuwe kaart toevoegen"
+
+msgid "Edit map"
+msgstr "Kaart bewerken"
+
+msgid "New map"
+msgstr "Nieuwe kaart"
+
+msgid "View map"
+msgstr "Kaart bekijken"
+
+msgid "Search maps"
+msgstr "Kaarten zoeken"
+
+msgid "No maps found"
+msgstr "Geen kaarten gevonden"
+
+msgid "No maps found in trash"
+msgstr "Geen kaarten gevonden in de prullenbak"
+
+msgid "Map settings"
+msgstr "Kaartinstellingen"
+
+msgid "Map data sources"
+msgstr "Kaartdatabronnen"
+
+msgid "Start location"
+msgstr "Startlocatie"
+
+msgid "Clear location"
+msgstr "Locatie wissen"
+
+msgid "Coordinates: "
+msgstr "Coördinaten: "
+
+msgid "Start zoom level"
+msgstr "Startzoomniveau"
+
+msgid "Higher numbers zoom in closer. 1 shows the whole world, 18 shows street detail. 12–14 works well for a city overview."
+msgstr "Hogere nummers zoomen dichter in. 1 toont de hele wereld, 18 toont straatdetail. 12–14 werkt goed voor een stadsoverzicht."
+
+msgid "Search box"
+msgstr "Zoekvak"
+
+msgid "Show a search box on the map"
+msgstr "Toon een zoekvak op de kaart"
+
+msgid "Let visitors search for a location by name."
+msgstr "Laat bezoekers zoeken naar een locatie op naam."
+
+msgid "Search box label"
+msgstr "Label zoekvak"
+
+msgid "Shown above or inside the search box (e.g. \"Search a location\")."
+msgstr "Getoond boven of in het zoekvak (bijv. \"Zoek een locatie\")."
+
+msgid "Filters"
+msgstr "Filters"
+
+msgid "Show filters above the map"
+msgstr "Toon filters boven de kaart"
+
+msgid "Let visitors filter results by category. Configure per data source which properties can be filtered."
+msgstr "Laat bezoekers resultaten filteren op categorie. Stel per databron in op welke eigenschappen gefilterd kan worden."
+
+msgid "List view"
+msgstr "Lijstweergave"
+
+msgid "Enable list view"
+msgstr "Lijstweergave inschakelen"
+
+msgid "Adds a toggle that lets visitors switch between the map and a card overview of all locations."
+msgstr "Voegt een schakelaar toe waarmee bezoekers kunnen wisselen tussen de kaart en een kaartenoverzicht van alle locaties."
+
+msgid "Number of columns"
+msgstr "Aantal kolommen"
+
+msgid "How many cards are shown per row."
+msgstr "Hoeveel kaarten er per rij worden getoond."
+
+msgid "Hide address in list cards"
+msgstr "Adres in lijstkaarten verbergen"
+
+msgid "Hides the address field in the list view, even when filled in."
+msgstr "Verbergt het adresveld in de lijstweergave, ook als het is ingevuld."
+
+msgid "Button label"
+msgstr "Knoplabel"
+
+msgid "Label for the action button on popups and list cards. Leave empty for the default (\"Read more\")."
+msgstr "Label voor de actieknop in pop-ups en lijstkaarten. Laat leeg voor de standaardtekst (\"Lees meer\")."
+
+msgid "Data source %d"
+msgstr "Databron %d"
+
+msgid "Data source "
+msgstr "Databron "
+
+msgid "Remove this data source"
+msgstr "Deze databron verwijderen"
+
+msgid "+ Add data source"
+msgstr "+ Databron toevoegen"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "e.g. Schools, Parking spots"
+msgstr "bijv. Scholen, Parkeerplaatsen"
+
+msgid "Used as label in the map legend."
+msgstr "Wordt gebruikt als label in de kaartlegenda."
+
+msgid "Source type"
+msgstr "Brontype"
+
+msgid "WordPress content"
+msgstr "WordPress-inhoud"
+
+msgid "GeoJSON file (URL)"
+msgstr "GeoJSON-bestand (URL)"
+
+msgid "WFS service"
+msgstr "WFS-dienst"
+
+msgid "WMS background layer"
+msgstr "WMS-achtergrondlaag"
+
+msgid "Where the locations come from."
+msgstr "Waar de locaties vandaan komen."
+
+msgid "Background layer only"
+msgstr "Alleen achtergrondlaag"
+
+msgid "Show on the map, but hide in the list view and filters"
+msgstr "Toon op de kaart, maar verberg in de lijstweergave en filters"
+
+msgid "Use this for reference layers such as district boundaries."
+msgstr "Gebruik dit voor referentielagen zoals wijkgrenzen."
+
+msgid "Content type"
+msgstr "Inhoudstype"
+
+msgid "— Select —"
+msgstr "— Selecteer —"
+
+msgid "Which WordPress content type contains your locations."
+msgstr "Welk WordPress-inhoudstype uw locaties bevat."
+
+msgid "Coordinates field"
+msgstr "Coördinatenveld"
+
+msgid "Custom field with each post's coordinates as latitude, longitude (e.g. 52.0705, 4.3007)."
+msgstr "Aangepast veld met de coördinaten van elk bericht als breedtegraad, lengtegraad (bijv. 52.0705, 4.3007)."
+
+msgid "Popup — title"
+msgstr "Pop-up — titel"
+
+msgid "Shown as the heading in the map popup. Leave empty to use the post title."
+msgstr "Getoond als koptekst in de kaartpop-up. Laat leeg om de berichttitel te gebruiken."
+
+msgid "Popup — description"
+msgstr "Pop-up — beschrijving"
+
+msgid "Shown as the body text in the map popup."
+msgstr "Getoond als bodytekst in de kaartpop-up."
+
+msgid "Popup — image"
+msgstr "Pop-up — afbeelding"
+
+msgid "Custom field with an image (attachment ID or full image URL)."
+msgstr "Aangepast veld met een afbeelding (bijlage-ID of volledige afbeeldings-URL)."
+
+msgid "Popup — eyebrow"
+msgstr "Pop-up — kopregel"
+
+msgid "Small text above the title, like a category or badge."
+msgstr "Kleine tekst boven de titel, zoals een categorie of badge."
+
+msgid "Popup — address"
+msgstr "Pop-up — adres"
+
+msgid "Address line shown in the popup."
+msgstr "Adresregel getoond in de pop-up."
+
+msgid "Card — website link"
+msgstr "Kaart — websitelink"
+
+msgid "Custom field with an external URL. When empty, the card links to the post itself."
+msgstr "Aangepast veld met een externe URL. Als leeg, linkt de kaart naar het bericht zelf."
+
+msgid "Card — category source"
+msgstr "Kaart — categoriebron"
+
+msgid "— None —"
+msgstr "— Geen —"
+
+msgid "Terms from this taxonomy are shown as tags on the card."
+msgstr "Termen uit deze taxonomie worden als tags op de kaart getoond."
+
+msgid "Filterable fields"
+msgstr "Filterbare velden"
+
+msgid "Custom field keys visitors can filter by. Separate multiple keys with commas."
+msgstr "Aangepaste veldsleutels waarop bezoekers kunnen filteren. Scheid meerdere sleutels met komma's."
+
+msgid "Filter display names"
+msgstr "Filterweergavenamen"
+
+msgid "Display names for the fields above, in the same order, separated by commas."
+msgstr "Weergavenamen voor de bovenstaande velden, in dezelfde volgorde, gescheiden door komma's."
+
+msgid "GeoJSON file URL"
+msgstr "GeoJSON-bestand-URL"
+
+msgid "A direct link to a .geojson file. After saving or loading, choose which fields to show below."
+msgstr "Een directe link naar een .geojson-bestand. Kies na het opslaan of laden welke velden u hieronder wilt tonen."
+
+msgid "WFS service URL"
+msgstr "WFS-dienst-URL"
+
+msgid "Endpoint of a Web Feature Service (often ends in /wfs)."
+msgstr "Eindpunt van een Web Feature Service (eindigt vaak op /wfs)."
+
+msgid "Feature type name"
+msgstr "Featuretypenaam"
+
+msgid "The layer to query, in namespace:typename format."
+msgstr "De laag om op te vragen, in namespace:typename-formaat."
+
+msgid "WMS service URL"
+msgstr "WMS-dienst-URL"
+
+msgid "Endpoint of a Web Map Service (often ends in /wms). Shown as a background layer — no clickable markers."
+msgstr "Eindpunt van een Web Map Service (eindigt vaak op /wms). Wordt getoond als achtergrondlaag — geen klikbare markeringen."
+
+msgid "Layer names"
+msgstr "Laagnamen"
+
+msgid "One or more WMS layer names, separated by commas."
+msgstr "Een of meer WMS-laagnamen, gescheiden door komma's."
+
+msgid "Available fields"
+msgstr "Beschikbare velden"
+
+msgid "Load available fields"
+msgstr "Beschikbare velden laden"
+
+msgid "Click \"Load available fields\" to see what is in the source. Check each field to show in the popup and give it a readable name."
+msgstr "Klik op \"Beschikbare velden laden\" om te zien wat er in de bron staat. Vink elk veld aan dat u in de pop-up wilt tonen en geef het een begrijpelijke naam."
+
+msgid "Show in popup"
+msgstr "Tonen in pop-up"
+
+msgid "Field"
+msgstr "Veld"
+
+msgid "Display label"
+msgstr "Weergavelabel"
+
+msgid "Invalid URL."
+msgstr "Ongeldige URL."
+
+msgid "TypeName is required for WFS sources."
+msgstr "TypeName is vereist voor WFS-bronnen."
+
+msgid "The external server returned HTTP %d."
+msgstr "De externe server gaf HTTP %d terug."
+
+msgid "No features found in the response."
+msgstr "Geen objecten gevonden in de respons."
+
+msgid "No properties found in the features."
+msgstr "Geen eigenschappen gevonden in de objecten."
+
+msgid "Loading…"
+msgstr "Laden…"
+
+msgid "Please enter a URL first."
+msgstr "Voer eerst een URL in."
+
+msgid "Please enter a feature type name first."
+msgstr "Voer eerst een featuretypenaam in."
+
+msgid "fields loaded."
+msgstr "velden geladen."
+
+msgid "Could not load fields. Check the URL and try again."
+msgstr "Velden konden niet worden geladen. Controleer de URL en probeer het opnieuw."
+
+msgid "Service is unreachable: "
+msgstr "De dienst is niet bereikbaar: "
+
+msgid "Search an address or place…"
+msgstr "Zoek een adres of plaats…"
+
+msgid "No results found."
+msgstr "Geen resultaten gevonden."
+
+msgid "Location service unreachable."
+msgstr "Locatieservice niet bereikbaar."
+
+msgid "Locations"
+msgstr "Locaties"
+
+msgid "Read more"
+msgstr "Lees meer"
+
