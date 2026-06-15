@@ -404,6 +404,7 @@
 	line-height: 1.3;
 	color: var(--denhaag-color-grey-5, hsl(0 0% 18%));
 	box-sizing: border-box;
+	isolation: isolate;
 }
 
 .wp-block-draad-map-advanced *,
