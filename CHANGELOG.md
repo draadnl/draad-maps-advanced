@@ -5,10 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-06-16
+
+### Fixed
+- Restored the Dutch interface strings that 1.4.0/1.4.1 inadvertently reverted to English. Those releases rebuilt `assets/vendor/draad-maps.iife.js` from a component checkout that predated the Dutch i18n translations, so labels such as the map canvas ("Interactieve kaart") and infowindow close button ("Sluiten") regressed to English. The bundle is rebuilt from `@draadnl/map-components` 0.5.4, which carries the Dutch strings together with the GeoJSON/WFS popup and filter-dropdown fixes.
+
 ## [1.4.1] - 2026-06-16
 
 ### Fixed
-- Filter dropdown for GeoJSON/WFS sources is no longer clipped: when a filterable field has many distinct values the filter renders a multi-select dropdown, which previously displayed partly off-screen inside the filter panel and forced the panel to scroll. The bundled `@draadnl/map-components` (0.5.3) now positions the dropdown to escape the panel's overflow and flips it above the trigger when it sits near the bottom of the viewport.
+- Filter dropdown for GeoJSON/WFS sources is no longer clipped: when a filterable field has many distinct values the filter renders a multi-select dropdown, which previously displayed partly off-screen inside the filter panel and forced the panel to scroll. The bundled `@draadnl/map-components` (0.5.4) now positions the dropdown to escape the panel's overflow and flips it above the trigger when it sits near the bottom of the viewport.
 
 ## [1.4.0] - 2026-06-16
 
