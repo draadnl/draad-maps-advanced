@@ -323,6 +323,28 @@ function draad_maps_render_post_query( array $config ): string {
 }
 
 function draad_maps_render_geojson( array $config ): string {
+	return draad_maps_render_feature_source( 'dm-geojson', $config, '', 'geojson' );
+}
+
+function draad_maps_render_wfs( array $config ): string {
+	$extra = '';
+	if ( ! empty( $config['typename'] ) ) {
+		$extra = ' name="' . esc_attr( $config['typename'] ) . '"';
+	}
+
+	return draad_maps_render_feature_source( 'dm-wfs', $config, $extra, 'wfs' );
+}
+
+/**
+ * Render a feature-based data source (<dm-geojson> / <dm-wfs>) together with
+ * its filter attributes and a configurable wildcard infowindow.
+ *
+ * @param string $tag         Custom element tag.
+ * @param array  $config      Datasource config.
+ * @param string $extra_attrs Tag-specific attributes (e.g. WFS name).
+ * @param string $fallback_id ID used when the label is empty.
+ */
+function draad_maps_render_feature_source( string $tag, array $config, string $extra_attrs = '', string $fallback_id = 'geojson' ): string {
 	$url   = $config['url'] ?? '';
 	$label = $config['label'] ?? '';
 
@@ -330,56 +352,140 @@ function draad_maps_render_geojson( array $config ): string {
 		return '';
 	}
 
-	$id        = sanitize_title( $label ) ?: 'geojson';
+	$id        = sanitize_title( $label ) ?: $fallback_id;
 	$proxy_url = draad_maps_proxy_url( $url );
-	$attrs     = ' id="' . esc_attr( $id ) . '" src="' . esc_url( $proxy_url ) . '"';
+	$attrs     = ' id="' . esc_attr( $id ) . '" src="' . esc_url( $proxy_url ) . '"' . $extra_attrs;
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
-	$property_mapping = $config['property_mapping'] ?? [];
-	$attrs           .= draad_maps_render_property_mapping_attrs( $property_mapping );
 
-	$out = '<dm-geojson' . $attrs . '></dm-geojson>';
-
-	// Emit a wildcard infowindow so feature clicks display the mapped properties.
-	$has_visible = ! empty( array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) ) );
-	if ( $has_visible ) {
-		$out .= '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*"></dm-infowindow>';
+	// Filtering: which feature properties visitors can filter on.
+	$filter_fields = draad_maps_normalize_keys( $config['filter_fields'] ?? [] );
+	if ( ! empty( $filter_fields ) ) {
+		$filter_labels = array_map( 'draad_maps_humanize_key', $filter_fields );
+		$attrs        .= ' filter-properties="' . esc_attr( implode( ',', $filter_fields ) ) . '"';
+		$attrs        .= ' filter-labels="' . esc_attr( implode( ',', $filter_labels ) ) . '"';
 	}
 
-	return $out;
+	// Infowindow: rich popup mapped from feature properties.
+	$infowindow = draad_maps_build_feature_infowindow( $id, $config );
+
+	// Backward compatibility: maps configured before the popup builder still
+	// carry a property_mapping. Fall back to the auto data-table for those.
+	if ( '' === $infowindow ) {
+		$property_mapping = $config['property_mapping'] ?? [];
+		$attrs           .= draad_maps_render_property_mapping_attrs( $property_mapping );
+		$has_visible      = ! empty( array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) ) );
+		if ( $has_visible ) {
+			$infowindow = '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*"></dm-infowindow>';
+		}
+	}
+
+	return '<' . $tag . $attrs . '></' . $tag . '>' . $infowindow;
 }
 
-function draad_maps_render_wfs( array $config ): string {
-	$url      = $config['url'] ?? '';
-	$typename = $config['typename'] ?? '';
-	$label    = $config['label'] ?? '';
+/**
+ * Build a configurable wildcard infowindow for a feature source. Mirrors the
+ * WordPress-content popup slots (image, eyebrow, title, address, text, chips,
+ * action), but binds to feature properties via a <template>. Returns an empty
+ * string when no popup slot is configured.
+ */
+function draad_maps_build_feature_infowindow( string $id, array $config ): string {
+	$image   = $config['popup_image'] ?? '';
+	$eyebrow = $config['popup_eyebrow'] ?? '';
+	$title   = $config['popup_title'] ?? '';
+	$address = $config['popup_address'] ?? '';
+	$text    = draad_maps_normalize_keys( $config['popup_text'] ?? [] );
+	$chips   = draad_maps_normalize_keys( $config['popup_chips'] ?? [] );
+	$action  = $config['popup_action_field'] ?? '';
 
-	if ( ! $url ) {
+	if ( ! $image && ! $eyebrow && ! $title && ! $address && empty( $text ) && empty( $chips ) && ! $action ) {
 		return '';
 	}
 
-	$id        = sanitize_title( $label ) ?: 'wfs';
-	$proxy_url = draad_maps_proxy_url( $url );
-	$attrs     = ' id="' . esc_attr( $id ) . '" src="' . esc_url( $proxy_url ) . '"';
-	if ( $typename ) {
-		$attrs .= ' name="' . esc_attr( $typename ) . '"';
-	}
-	if ( $label ) {
-		$attrs .= ' label="' . esc_attr( $label ) . '"';
-	}
-	$property_mapping = $config['property_mapping'] ?? [];
-	$attrs           .= draad_maps_render_property_mapping_attrs( $property_mapping );
+	$bind = fn( string $key ) => esc_attr( 'properties.' . $key );
 
-	$out = '<dm-wfs' . $attrs . '></dm-wfs>';
-
-	// Emit a wildcard infowindow so feature clicks display the mapped properties.
-	$has_visible = ! empty( array_filter( $property_mapping, fn( $m ) => ! empty( $m['visible'] ) ) );
-	if ( $has_visible ) {
-		$out .= '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*"></dm-infowindow>';
+	$action_label = $config['popup_action_label'] ?? '';
+	if ( '' === $action_label ) {
+		$action_label = $config['_map_action_label'] ?? '';
+	}
+	if ( '' === $action_label ) {
+		$action_label = __( 'Read more', 'draad-maps' );
 	}
 
-	return $out;
+	// The image uses the dedicated media slot (top strip), like WP content.
+	$media = $image ? '<img slot="media" data-src="' . $bind( $image ) . '" alt="" />' : '';
+
+	$tpl = '';
+	if ( $eyebrow ) {
+		$tpl .= '<span class="label" data-field="' . $bind( $eyebrow ) . '"></span>';
+	}
+	if ( $title ) {
+		$tpl .= '<h3 data-field="' . $bind( $title ) . '"></h3>';
+	}
+	if ( $address ) {
+		$tpl .= '<address data-field="' . $bind( $address ) . '"></address>';
+	}
+
+	// One text property → paragraph; several → a key/value table.
+	if ( 1 === count( $text ) ) {
+		$tpl .= '<p data-field="' . $bind( $text[0] ) . '"></p>';
+	} elseif ( count( $text ) > 1 ) {
+		$tpl .= '<dl class="dm-infowindow-data" part="data-table">';
+		foreach ( $text as $key ) {
+			$tpl .= '<dt>' . esc_html( draad_maps_humanize_key( $key ) ) . '</dt>';
+			$tpl .= '<dd data-field="' . $bind( $key ) . '"></dd>';
+		}
+		$tpl .= '</dl>';
+	}
+
+	if ( ! empty( $chips ) ) {
+		$tpl .= '<div class="chips">';
+		foreach ( $chips as $key ) {
+			$tpl .= '<span data-field="' . $bind( $key ) . '"></span>';
+		}
+		$tpl .= '</div>';
+	}
+
+	if ( $action ) {
+		$tpl .= '<a class="action" data-href="' . $bind( $action ) . '">' . esc_html( $action_label ) . '</a>';
+	}
+
+	return '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*">'
+		. $media
+		. '<template>' . $tpl . '</template>'
+		. '</dm-infowindow>';
+}
+
+/**
+ * Normalize a list of property keys (array or comma string) → clean array.
+ *
+ * @return string[]
+ */
+function draad_maps_normalize_keys( $value ): array {
+	if ( is_string( $value ) ) {
+		$value = '' === $value ? [] : explode( ',', $value );
+	}
+	if ( ! is_array( $value ) ) {
+		return [];
+	}
+
+	$out = [];
+	foreach ( $value as $key ) {
+		$key = trim( (string) $key );
+		if ( '' !== $key ) {
+			$out[] = $key;
+		}
+	}
+
+	return array_values( array_unique( $out ) );
+}
+
+/**
+ * Turn a property key into a human-readable label ("aantal_leden" → "Aantal Leden").
+ */
+function draad_maps_humanize_key( string $key ): string {
+	return ucwords( str_replace( [ '_', '-' ], ' ', $key ) );
 }
 
 function draad_maps_render_wms( array $config ): string {

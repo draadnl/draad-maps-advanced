@@ -423,7 +423,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 						<p class="description"><?php esc_html_e( 'A direct link to a .geojson file. After saving or loading, choose which fields to show below.', 'draad-maps' ); ?></p>
 					</td>
 				</tr>
-				<?php draad_maps_render_property_mapping_table( $property_mapping ); ?>
+				<?php draad_maps_render_feature_popup_fields( $ds ); ?>
 			</table>
 		</div>
 
@@ -443,7 +443,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 						<p class="description"><?php esc_html_e( 'The layer to query, in namespace:typename format.', 'draad-maps' ); ?></p>
 					</td>
 				</tr>
-				<?php draad_maps_render_property_mapping_table( $property_mapping ); ?>
+				<?php draad_maps_render_feature_popup_fields( $ds ); ?>
 			</table>
 		</div>
 
@@ -499,6 +499,108 @@ function draad_maps_render_property_mapping_table( array $property_mapping ) {
 			</div>
 		</td>
 	</tr>
+	<?php
+}
+
+/**
+ * Render the popup + filter configuration for a feature source (geojson/wfs).
+ * Mirrors the WordPress-content popup slots, but the options are feature
+ * property keys loaded from the source via "Load available fields".
+ */
+function draad_maps_render_feature_popup_fields( array $ds = [] ) {
+	$available = [];
+	if ( ! empty( $ds['available_fields'] ) && is_array( $ds['available_fields'] ) ) {
+		$available = $ds['available_fields'];
+	} elseif ( ! empty( $ds['property_mapping'] ) && is_array( $ds['property_mapping'] ) ) {
+		// Legacy data: seed the dropdowns from the old property mapping.
+		$available = array_values( array_filter( array_map(
+			static fn( $m ) => $m['key'] ?? '',
+			$ds['property_mapping']
+		) ) );
+	}
+	?>
+	<tr>
+		<th style="width:200px"><label><?php esc_html_e( 'Available fields', 'draad-maps' ); ?></label></th>
+		<td>
+			<button type="button" class="button draad-ds-fetch-properties"><?php esc_html_e( 'Load available fields', 'draad-maps' ); ?></button>
+			<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
+			<input type="hidden" class="draad-ds-available-fields" value="<?php echo esc_attr( wp_json_encode( array_values( $available ) ) ); ?>" />
+			<p class="description"><?php esc_html_e( 'Load the fields from the source, then choose which ones to show in the popup and which can be filtered.', 'draad-maps' ); ?></p>
+		</td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — image', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-image', $ds['popup_image'] ?? '', $available ); ?>
+			<p class="description"><?php esc_html_e( 'Field with an image URL, shown at the top of the popup.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — eyebrow', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-eyebrow', $ds['popup_eyebrow'] ?? '', $available ); ?>
+			<p class="description"><?php esc_html_e( 'Small text above the title.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — title', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-title', $ds['popup_title'] ?? '', $available ); ?>
+			<p class="description"><?php esc_html_e( 'Shown as the heading in the popup.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — address', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-address', $ds['popup_address'] ?? '', $available ); ?>
+			<p class="description"><?php esc_html_e( 'Address line shown in the popup.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — text', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-text', $ds['popup_text'] ?? [], $available, true ); ?>
+			<p class="description"><?php esc_html_e( 'Hold Ctrl/Cmd to select several. One field shows as a paragraph; multiple fields show as a table.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — chips', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-chips', $ds['popup_chips'] ?? [], $available, true ); ?>
+			<p class="description"><?php esc_html_e( 'Each selected field is shown as a tag/chip.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — link field', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-popup-action-field', $ds['popup_action_field'] ?? '', $available ); ?>
+			<p class="description"><?php esc_html_e( 'Field with a URL for the action button.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Popup — link label', 'draad-maps' ); ?></label></th>
+		<td><input type="text" class="draad-ds-popup-action-label regular-text" value="<?php echo esc_attr( $ds['popup_action_label'] ?? '' ); ?>" />
+			<p class="description"><?php esc_html_e( 'Button text. Leave empty for the default ("Read more").', 'draad-maps' ); ?></p></td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Filterable fields', 'draad-maps' ); ?></label></th>
+		<td><?php draad_maps_render_feature_field_select( 'draad-ds-filter-fields', $ds['filter_fields'] ?? [], $available, true ); ?>
+			<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p></td>
+	</tr>
+	<?php
+}
+
+/**
+ * Render a <select> of feature property keys for one popup/filter slot.
+ *
+ * @param string          $class    CSS class identifying the slot.
+ * @param string|string[] $selected Currently selected key(s).
+ * @param string[]        $available Available property keys.
+ * @param bool            $multiple Allow multiple selection.
+ */
+function draad_maps_render_feature_field_select( string $class, $selected, array $available, bool $multiple = false ) {
+	$selected_arr = array_filter( array_map( 'strval', (array) $selected ), static fn( $v ) => '' !== $v );
+	$available    = array_map( 'strval', $available );
+	?>
+	<select class="<?php echo esc_attr( $class ); ?>"<?php echo $multiple ? ' multiple size="4" style="min-width:240px"' : ''; ?>>
+		<?php if ( ! $multiple ) : ?>
+			<option value=""><?php esc_html_e( '— None —', 'draad-maps' ); ?></option>
+		<?php endif; ?>
+		<?php foreach ( $available as $key ) : ?>
+			<option value="<?php echo esc_attr( $key ); ?>" <?php echo in_array( $key, $selected_arr, true ) ? 'selected' : ''; ?>><?php echo esc_html( $key ); ?></option>
+		<?php endforeach; ?>
+		<?php foreach ( $selected_arr as $sv ) : ?>
+			<?php if ( ! in_array( $sv, $available, true ) ) : ?>
+				<option value="<?php echo esc_attr( $sv ); ?>" selected><?php echo esc_html( $sv ); ?></option>
+			<?php endif; ?>
+		<?php endforeach; ?>
+	</select>
 	<?php
 }
 
@@ -650,26 +752,7 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 						<p class="description"><?php echo esc_js( __( 'A direct link to a .geojson file. After saving or loading, choose which fields to show below.', 'draad-maps' ) ); ?></p>
 					</td>
 				</tr>
-				<tr>
-					<th style="width:200px"><label><?php echo esc_js( __( 'Available fields', 'draad-maps' ) ); ?></label></th>
-					<td>
-						<button type="button" class="button draad-ds-fetch-properties"><?php echo esc_js( __( 'Load available fields', 'draad-maps' ) ); ?></button>
-						<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
-						<p class="description"><?php echo esc_js( __( 'Click "Load available fields" to see what is in the source. Check each field to show in the popup and give it a readable name.', 'draad-maps' ) ); ?></p>
-						<div class="draad-ds-property-mapping" style="margin-top:8px;display:none">
-							<table class="widefat fixed striped" style="max-width:600px">
-								<thead>
-									<tr>
-										<th style="width:40px;padding:4px 8px"><?php echo esc_js( __( 'Show in popup', 'draad-maps' ) ); ?></th>
-										<th style="padding:4px 8px"><?php echo esc_js( __( 'Field', 'draad-maps' ) ); ?></th>
-										<th style="padding:4px 8px"><?php echo esc_js( __( 'Display label', 'draad-maps' ) ); ?></th>
-									</tr>
-								</thead>
-								<tbody></tbody>
-							</table>
-						</div>
-					</td>
-				</tr>
+				<?php draad_maps_render_feature_popup_fields(); ?>
 			</table>
 		</div>
 
@@ -689,26 +772,7 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 						<p class="description"><?php echo esc_js( __( 'The layer to query, in namespace:typename format.', 'draad-maps' ) ); ?></p>
 					</td>
 				</tr>
-				<tr>
-					<th style="width:200px"><label><?php echo esc_js( __( 'Available fields', 'draad-maps' ) ); ?></label></th>
-					<td>
-						<button type="button" class="button draad-ds-fetch-properties"><?php echo esc_js( __( 'Load available fields', 'draad-maps' ) ); ?></button>
-						<span class="draad-ds-fetch-status" style="margin-left:8px;color:#666"></span>
-						<p class="description"><?php echo esc_js( __( 'Click "Load available fields" to see what is in the source. Check each field to show in the popup and give it a readable name.', 'draad-maps' ) ); ?></p>
-						<div class="draad-ds-property-mapping" style="margin-top:8px;display:none">
-							<table class="widefat fixed striped" style="max-width:600px">
-								<thead>
-									<tr>
-										<th style="width:40px;padding:4px 8px"><?php echo esc_js( __( 'Show in popup', 'draad-maps' ) ); ?></th>
-										<th style="padding:4px 8px"><?php echo esc_js( __( 'Field', 'draad-maps' ) ); ?></th>
-										<th style="padding:4px 8px"><?php echo esc_js( __( 'Display label', 'draad-maps' ) ); ?></th>
-									</tr>
-								</thead>
-								<tbody></tbody>
-							</table>
-						</div>
-					</td>
-				</tr>
+				<?php draad_maps_render_feature_popup_fields(); ?>
 			</table>
 		</div>
 

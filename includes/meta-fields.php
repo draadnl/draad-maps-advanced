@@ -123,14 +123,14 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				break;
 
 			case 'geojson_url':
-				$entry['url']              = esc_url_raw( $ds['url'] ?? '' );
-				$entry['property_mapping'] = draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] );
+				$entry['url'] = esc_url_raw( $ds['url'] ?? '' );
+				$entry       += draad_maps_sanitize_feature_popup( $ds );
 				break;
 
 			case 'wfs':
-				$entry['url']              = esc_url_raw( $ds['url'] ?? '' );
-				$entry['typename']         = sanitize_text_field( $ds['typename'] ?? '' );
-				$entry['property_mapping'] = draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] );
+				$entry['url']      = esc_url_raw( $ds['url'] ?? '' );
+				$entry['typename'] = sanitize_text_field( $ds['typename'] ?? '' );
+				$entry            += draad_maps_sanitize_feature_popup( $ds );
 				break;
 
 			case 'wms':
@@ -143,6 +143,64 @@ function draad_maps_sanitize_datasources( string $json ): string {
 	}
 
 	return wp_json_encode( $sanitized );
+}
+
+/**
+ * Sanitize the infowindow/filter configuration for a feature source
+ * (geojson_url, wfs). Slots mirror the WordPress-content popup fields, but
+ * the values are feature property keys rather than post meta keys.
+ *
+ * @return array<string,mixed>
+ */
+function draad_maps_sanitize_feature_popup( array $ds ): array {
+	$key = static function ( $v ): string {
+		// Feature property keys are arbitrary strings; keep them intact but
+		// strip commas (used as the list separator in emitted attributes).
+		return trim( str_replace( ',', '', sanitize_text_field( (string) $v ) ) );
+	};
+
+	return [
+		'popup_image'        => $key( $ds['popup_image'] ?? '' ),
+		'popup_eyebrow'      => $key( $ds['popup_eyebrow'] ?? '' ),
+		'popup_title'        => $key( $ds['popup_title'] ?? '' ),
+		'popup_address'      => $key( $ds['popup_address'] ?? '' ),
+		'popup_text'         => draad_maps_sanitize_key_list( $ds['popup_text'] ?? [] ),
+		'popup_chips'        => draad_maps_sanitize_key_list( $ds['popup_chips'] ?? [] ),
+		'popup_action_field' => $key( $ds['popup_action_field'] ?? '' ),
+		'popup_action_label' => sanitize_text_field( $ds['popup_action_label'] ?? '' ),
+		'filter_fields'      => draad_maps_sanitize_key_list( $ds['filter_fields'] ?? [] ),
+		'available_fields'   => draad_maps_sanitize_key_list( $ds['available_fields'] ?? [] ),
+		// Retained so maps configured before the popup builder keep rendering.
+		'property_mapping'   => draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] ),
+	];
+}
+
+/**
+ * Sanitize a list of feature property keys (accepts an array or a
+ * comma-separated string), de-duplicating and dropping empties.
+ *
+ * @return string[]
+ */
+function draad_maps_sanitize_key_list( $list ): array {
+	if ( is_string( $list ) ) {
+		$list = '' === $list ? [] : explode( ',', $list );
+	}
+	if ( ! is_array( $list ) ) {
+		return [];
+	}
+
+	$out  = [];
+	$seen = [];
+	foreach ( $list as $item ) {
+		$key = trim( str_replace( ',', '', sanitize_text_field( (string) $item ) ) );
+		if ( '' === $key || isset( $seen[ $key ] ) ) {
+			continue;
+		}
+		$seen[ $key ] = true;
+		$out[]        = $key;
+	}
+
+	return $out;
 }
 
 function draad_maps_sanitize_property_mapping( $mapping ): array {

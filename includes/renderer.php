@@ -60,7 +60,7 @@ function draad_maps_render( int $map_id ): string {
 			if ( ! empty( $ds['display_only'] ) ) {
 				continue;
 			}
-			if ( ! empty( $ds['filter_properties'] ) || ! empty( $ds['terms_taxonomy'] ) ) {
+			if ( ! empty( $ds['filter_properties'] ) || ! empty( $ds['terms_taxonomy'] ) || ! empty( $ds['filter_fields'] ) ) {
 				$filter_source_ids[] = sanitize_title( $label );
 			}
 		}

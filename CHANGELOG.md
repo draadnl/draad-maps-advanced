@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-06-16
+
+### Added
+- GeoJSON and WFS data sources can now configure their popups with the same field slots as WordPress content: image, eyebrow, title, address, text, chips, and an action button — each mapped to a feature property. The image uses the dedicated media strip; "text" with one field renders a paragraph and with several fields renders a key/value table.
+- GeoJSON and WFS data sources now support filtering: pick which feature properties visitors can filter on ("Filterable fields"), wired into the existing map filter. Previously filtering was only available for WordPress content.
+- Admin "Load available fields" now populates per-slot dropdowns (single- and multi-select) for feature sources instead of a single show/label table.
+
+### Changed
+- Rebuilt `assets/vendor/draad-maps.iife.js` (`@draadnl/map-components`): the wildcard feature infowindow now data-binds the media-slot image per feature and hides any popup element (heading, table row, chip, action) whose property is empty, so features with missing properties no longer show blank fields. The filter's dropdown multi-select (used when a filterable field has many values) no longer renders clipped/off-screen inside the filter panel — it now positions correctly and flips above the trigger near the viewport bottom.
+
+### Compatibility
+- Existing GeoJSON/WFS maps configured with the old property mapping keep rendering their auto-generated data table; configure the new popup slots to opt into the richer layout.
+
 ## [1.3.2] - 2026-06-15
 
 ### Fixed

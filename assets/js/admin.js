@@ -125,48 +125,50 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	}
 
 	// -------------------------------------------------------------------------
-	// Property mapping helpers
+	// Feature popup field helpers (geojson / wfs)
 	// -------------------------------------------------------------------------
 
-	function humanizeKey( key ) {
-		return key.replace( /[_-]/g, ' ' ).replace( /\b\w/g, ( c ) => c.toUpperCase() );
-	}
+	const FEATURE_FIELD_SELECTORS = [
+		'.draad-ds-popup-image',
+		'.draad-ds-popup-eyebrow',
+		'.draad-ds-popup-title',
+		'.draad-ds-popup-address',
+		'.draad-ds-popup-action-field',
+		'.draad-ds-popup-text',
+		'.draad-ds-popup-chips',
+		'.draad-ds-filter-fields',
+	];
 
-	function getExistingMapping( card ) {
-		const map = new Map();
-		card.querySelectorAll( '.draad-ds-pm-row' ).forEach( ( row ) => {
-			const key     = row.querySelector( '.draad-ds-pm-key' ).textContent;
-			const label   = row.querySelector( '.draad-ds-pm-label' ).value;
-			const visible = row.querySelector( '.draad-ds-pm-visible' ).checked;
-			map.set( key, { label, visible } );
-		} );
-		return map;
-	}
+	// Rebuild a select's options from the loaded keys, preserving the current
+	// selection (works for both single and multiple selects).
+	function repopulateFieldSelect( sel, keys ) {
+		if ( ! sel ) return;
+		const isMulti  = sel.multiple;
+		const selected = isMulti
+			? Array.from( sel.selectedOptions ).map( ( o ) => o.value )
+			: [ sel.value ];
 
-	function populatePropertyMapping( card, keys ) {
-		const container = card.querySelector( '.draad-ds-property-mapping' );
-		if ( ! container ) return;
-
-		const tbody   = container.querySelector( 'tbody' );
-		const existing = getExistingMapping( card );
-
-		tbody.innerHTML = '';
-
-		keys.forEach( ( key ) => {
-			const prev    = existing.get( key );
-			const label   = prev ? prev.label : humanizeKey( key );
-			const visible = prev ? prev.visible : true;
-
-			const tr = document.createElement( 'tr' );
-			tr.className = 'draad-ds-pm-row';
-			tr.innerHTML =
-				'<td style="padding:4px 8px"><input type="checkbox" class="draad-ds-pm-visible"' + ( visible ? ' checked' : '' ) + ' /></td>' +
-				'<td style="padding:4px 8px"><code class="draad-ds-pm-key">' + key.replace( /</g, '&lt;' ) + '</code></td>' +
-				'<td style="padding:4px 8px"><input type="text" class="draad-ds-pm-label" value="' + label.replace( /"/g, '&quot;' ) + '" style="width:100%" /></td>';
-			tbody.appendChild( tr );
+		const all = keys.slice();
+		selected.forEach( ( v ) => {
+			if ( v && ! all.includes( v ) ) all.push( v );
 		} );
 
-		container.style.display = keys.length ? '' : 'none';
+		sel.innerHTML = isMulti ? '' : '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
+		all.forEach( ( key ) => {
+			const opt       = document.createElement( 'option' );
+			opt.value       = key;
+			opt.textContent = key;
+			if ( selected.includes( key ) ) opt.selected = true;
+			sel.appendChild( opt );
+		} );
+	}
+
+	function populateFeatureFields( section, keys ) {
+		FEATURE_FIELD_SELECTORS.forEach( ( cls ) => {
+			repopulateFieldSelect( section.querySelector( cls ), keys );
+		} );
+		const hidden = section.querySelector( '.draad-ds-available-fields' );
+		if ( hidden ) hidden.value = JSON.stringify( keys );
 	}
 
 	function fetchAndPopulateProperties( card ) {
@@ -211,7 +213,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			.then( ( r ) => r.json() )
 			.then( ( data ) => {
 				if ( data.success ) {
-					populatePropertyMapping( card, data.data );
+					populateFeatureFields( section, data.data );
 					if ( status ) status.textContent = data.data.length + ' ' + draadMapsAdmin.i18n.fieldsLoaded;
 				} else {
 					if ( status ) status.textContent = data.data || draadMapsAdmin.i18n.errorFetching;
@@ -388,16 +390,30 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// Serialize to JSON on submit
 	// -------------------------------------------------------------------------
 
-	function serializePropertyMapping( card ) {
-		const mapping = [];
-		card.querySelectorAll( '.draad-ds-pm-row' ).forEach( ( row ) => {
-			mapping.push( {
-				key:     row.querySelector( '.draad-ds-pm-key' ).textContent,
-				label:   row.querySelector( '.draad-ds-pm-label' ).value,
-				visible: row.querySelector( '.draad-ds-pm-visible' ).checked,
-			} );
-		} );
-		return mapping;
+	function serializeFeaturePopup( section ) {
+		const single = ( cls ) => section.querySelector( cls )?.value || '';
+		const multi  = ( cls ) =>
+			Array.from( section.querySelector( cls )?.selectedOptions || [] ).map( ( o ) => o.value );
+
+		let available = [];
+		try {
+			available = JSON.parse( section.querySelector( '.draad-ds-available-fields' )?.value || '[]' );
+		} catch ( e ) {
+			available = [];
+		}
+
+		return {
+			popup_image:        single( '.draad-ds-popup-image' ),
+			popup_eyebrow:      single( '.draad-ds-popup-eyebrow' ),
+			popup_title:        single( '.draad-ds-popup-title' ),
+			popup_address:      single( '.draad-ds-popup-address' ),
+			popup_text:         multi( '.draad-ds-popup-text' ),
+			popup_chips:        multi( '.draad-ds-popup-chips' ),
+			popup_action_field: single( '.draad-ds-popup-action-field' ),
+			popup_action_label: single( '.draad-ds-popup-action-label' ),
+			filter_fields:      multi( '.draad-ds-filter-fields' ),
+			available_fields:   available,
+		};
 	}
 
 	function serializeDatasources() {
@@ -423,15 +439,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					ds.filter_properties = card.querySelector( '.draad-ds-filter-properties' ).value;
 					ds.filter_labels     = card.querySelector( '.draad-ds-filter-labels' ).value;
 					break;
-				case 'geojson_url':
-					ds.url              = card.querySelector( '.draad-ds-fields--geojson-url .draad-ds-url' ).value;
-					ds.property_mapping = serializePropertyMapping( card );
+				case 'geojson_url': {
+					const sec = card.querySelector( '.draad-ds-fields--geojson-url' );
+					ds.url    = sec.querySelector( '.draad-ds-url' ).value;
+					Object.assign( ds, serializeFeaturePopup( sec ) );
 					break;
-				case 'wfs':
-					ds.url              = card.querySelector( '.draad-ds-fields--wfs .draad-ds-url' ).value;
-					ds.typename         = card.querySelector( '.draad-ds-typename' ).value;
-					ds.property_mapping = serializePropertyMapping( card );
+				}
+				case 'wfs': {
+					const sec   = card.querySelector( '.draad-ds-fields--wfs' );
+					ds.url      = sec.querySelector( '.draad-ds-url' ).value;
+					ds.typename = sec.querySelector( '.draad-ds-typename' ).value;
+					Object.assign( ds, serializeFeaturePopup( sec ) );
 					break;
+				}
 				case 'wms':
 					ds.url    = card.querySelector( '.draad-ds-url' ).value;
 					ds.layers = card.querySelector( '.draad-ds-layers' ).value;
