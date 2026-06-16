@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-06-16
+
+### Fixed
+- Filter dropdown for GeoJSON/WFS sources is no longer clipped: when a filterable field has many distinct values the filter renders a multi-select dropdown, which previously displayed partly off-screen inside the filter panel and forced the panel to scroll. The bundled `@draadnl/map-components` (0.5.3) now positions the dropdown to escape the panel's overflow and flips it above the trigger when it sits near the bottom of the viewport.
+
 ## [1.4.0] - 2026-06-16
 
 ### Added
@@ -13,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin "Load available fields" now populates per-slot dropdowns (single- and multi-select) for feature sources instead of a single show/label table.
 
 ### Changed
-- Rebuilt `assets/vendor/draad-maps.iife.js` (`@draadnl/map-components`): the wildcard feature infowindow now data-binds the media-slot image per feature and hides any popup element (heading, table row, chip, action) whose property is empty, so features with missing properties no longer show blank fields. The filter's dropdown multi-select (used when a filterable field has many values) no longer renders clipped/off-screen inside the filter panel — it now positions correctly and flips above the trigger near the viewport bottom.
+- Rebuilt `assets/vendor/draad-maps.iife.js` (`@draadnl/map-components`): the wildcard feature infowindow now data-binds the media-slot image per feature and hides any popup element (heading, table row, chip, action) whose property is empty, so features with missing properties no longer show blank fields.
 
 ### Compatibility
 - Existing GeoJSON/WFS maps configured with the old property mapping keep rendering their auto-generated data table; configure the new popup slots to opt into the richer layout.
