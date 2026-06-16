@@ -391,70 +391,124 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
  * string when no popup slot is configured.
  */
 function draad_maps_build_feature_infowindow( string $id, array $config ): string {
-	$image   = $config['popup_image'] ?? '';
-	$eyebrow = $config['popup_eyebrow'] ?? '';
-	$title   = $config['popup_title'] ?? '';
-	$address = $config['popup_address'] ?? '';
-	$text    = draad_maps_normalize_keys( $config['popup_text'] ?? [] );
-	$chips   = draad_maps_normalize_keys( $config['popup_chips'] ?? [] );
-	$action  = $config['popup_action_field'] ?? '';
+	$image  = $config['popup_image'] ?? '';
+	$action = $config['popup_action_field'] ?? '';
+	$body   = draad_maps_feature_popup_body( $config );
 
-	if ( ! $image && ! $eyebrow && ! $title && ! $address && empty( $text ) && empty( $chips ) && ! $action ) {
+	if ( '' === $image && '' === $body && '' === $action ) {
 		return '';
 	}
 
-	$bind = fn( string $key ) => esc_attr( 'properties.' . $key );
-
-	$action_label = $config['popup_action_label'] ?? '';
-	if ( '' === $action_label ) {
-		$action_label = $config['_map_action_label'] ?? '';
-	}
-	if ( '' === $action_label ) {
-		$action_label = __( 'Read more', 'draad-maps' );
-	}
-
 	// The image uses the dedicated media slot (top strip), like WP content.
-	$media = $image ? '<img slot="media" data-src="' . $bind( $image ) . '" alt="" />' : '';
+	$media = $image
+		? '<img slot="media" data-src="' . esc_attr( 'properties.' . $image ) . '" alt="" />'
+		: '';
 
-	$tpl = '';
-	if ( $eyebrow ) {
-		$tpl .= '<span class="label" data-field="' . $bind( $eyebrow ) . '"></span>';
-	}
-	if ( $title ) {
-		$tpl .= '<h3 data-field="' . $bind( $title ) . '"></h3>';
-	}
-	if ( $address ) {
-		$tpl .= '<address data-field="' . $bind( $address ) . '"></address>';
-	}
-
-	// One text property → paragraph; several → a key/value table.
-	if ( 1 === count( $text ) ) {
-		$tpl .= '<p data-field="' . $bind( $text[0] ) . '"></p>';
-	} elseif ( count( $text ) > 1 ) {
-		$tpl .= '<dl class="dm-infowindow-data" part="data-table">';
-		foreach ( $text as $key ) {
-			$tpl .= '<dt>' . esc_html( draad_maps_humanize_key( $key ) ) . '</dt>';
-			$tpl .= '<dd data-field="' . $bind( $key ) . '"></dd>';
-		}
-		$tpl .= '</dl>';
-	}
-
-	if ( ! empty( $chips ) ) {
-		$tpl .= '<div class="chips">';
-		foreach ( $chips as $key ) {
-			$tpl .= '<span data-field="' . $bind( $key ) . '"></span>';
-		}
-		$tpl .= '</div>';
-	}
-
+	$tpl = $body;
 	if ( $action ) {
-		$tpl .= '<a class="action" data-href="' . $bind( $action ) . '">' . esc_html( $action_label ) . '</a>';
+		$tpl .= '<a class="action" data-href="' . esc_attr( 'properties.' . $action ) . '">'
+			. esc_html( draad_maps_feature_action_label( $config ) ) . '</a>';
 	}
 
 	return '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*">'
 		. $media
 		. '<template>' . $tpl . '</template>'
 		. '</dm-infowindow>';
+}
+
+/**
+ * Shared popup/card body for feature sources: eyebrow, title, address, text
+ * (paragraph for one field, key/value table for several) and chips. Bindings
+ * use feature-property paths. Returns '' when none of these slots is set.
+ * Used by both the infowindow and the list-card template so they render the
+ * same content.
+ */
+function draad_maps_feature_popup_body( array $config ): string {
+	$eyebrow = $config['popup_eyebrow'] ?? '';
+	$title   = $config['popup_title'] ?? '';
+	$address = $config['popup_address'] ?? '';
+	$text    = draad_maps_normalize_keys( $config['popup_text'] ?? [] );
+	$chips   = draad_maps_normalize_keys( $config['popup_chips'] ?? [] );
+
+	$bind = fn( string $key ) => esc_attr( 'properties.' . $key );
+	$out  = '';
+
+	if ( $eyebrow ) {
+		$out .= '<span class="label" data-field="' . $bind( $eyebrow ) . '"></span>';
+	}
+	if ( $title ) {
+		$out .= '<h3 data-field="' . $bind( $title ) . '"></h3>';
+	}
+	if ( $address ) {
+		$out .= '<address data-field="' . $bind( $address ) . '"></address>';
+	}
+
+	// One text property → paragraph; several → a key/value table.
+	if ( 1 === count( $text ) ) {
+		$out .= '<p data-field="' . $bind( $text[0] ) . '"></p>';
+	} elseif ( count( $text ) > 1 ) {
+		$out .= '<dl class="dm-infowindow-data" part="data-table">';
+		foreach ( $text as $key ) {
+			$out .= '<dt>' . esc_html( draad_maps_humanize_key( $key ) ) . '</dt>';
+			$out .= '<dd data-field="' . $bind( $key ) . '"></dd>';
+		}
+		$out .= '</dl>';
+	}
+
+	if ( ! empty( $chips ) ) {
+		$out .= '<div class="chips">';
+		foreach ( $chips as $key ) {
+			$out .= '<span data-field="' . $bind( $key ) . '"></span>';
+		}
+		$out .= '</div>';
+	}
+
+	return $out;
+}
+
+/**
+ * Resolve the action-button label for a feature source: explicit popup label,
+ * then the map-level button label, then the default.
+ */
+function draad_maps_feature_action_label( array $config ): string {
+	$label = $config['popup_action_label'] ?? '';
+	if ( '' === $label ) {
+		$label = $config['_map_action_label'] ?? '';
+	}
+	if ( '' === $label ) {
+		$label = __( 'Read more', 'draad-maps' );
+	}
+	return $label;
+}
+
+/**
+ * Build a <dm-list> card template for a feature source, mirroring the infowindow
+ * content so the list view shows the same fields. The whole card is wrapped in an
+ * <a> (carrying the action link when configured) so the list card layout — which
+ * styles `.list__card a > *` — applies. Returns '' when no popup slot is set.
+ */
+function draad_maps_build_feature_list_template( array $config, bool $hide_address = false ): string {
+	$image  = $config['popup_image'] ?? '';
+	$action = $config['popup_action_field'] ?? '';
+
+	if ( $hide_address ) {
+		$config['popup_address'] = '';
+	}
+	$body = draad_maps_feature_popup_body( $config );
+
+	if ( '' === $image && '' === $body && '' === $action ) {
+		return '';
+	}
+
+	$img = $image
+		? '<img data-src="' . esc_attr( 'properties.' . $image ) . '" alt="" />'
+		: '';
+	$action_html = $action
+		? '<span class="action">' . esc_html( draad_maps_feature_action_label( $config ) ) . '</span>'
+		: '';
+	$href_attr = $action ? ' data-href="' . esc_attr( 'properties.' . $action ) . '"' : '';
+
+	return '<a' . $href_attr . '>' . $img . $body . $action_html . '</a>';
 }
 
 /**

@@ -126,6 +126,25 @@ function draad_maps_render( int $map_id ): string {
 			$output .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
 			$output .= '</a>';
 			$output .= '</template>';
+		} else {
+			// No post_query: use the first feature source's popup config so the
+			// list cards mirror the configurable GeoJSON/WFS infowindows.
+			foreach ( $datasources as $ds ) {
+				$ds_type = $ds['type'] ?? '';
+				if ( 'geojson_url' !== $ds_type && 'wfs' !== $ds_type ) {
+					continue;
+				}
+				$ds['_map_action_label'] = $action_label;
+				$feature_tpl             = draad_maps_build_feature_list_template( $ds, (bool) $list_hide_address );
+				if ( '' === $feature_tpl ) {
+					continue;
+				}
+				$output .= '<template>';
+				$output .= '<style>a:not([href]) .action{display:none}</style>';
+				$output .= $feature_tpl;
+				$output .= '</template>';
+				break;
+			}
 		}
 
 		$output .= '</dm-list>';
