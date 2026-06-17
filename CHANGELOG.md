@@ -5,30 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.3] - 2026-06-16
-
-### Fixed
-- GeoJSON/WFS list view now shows the same content as the infowindows. Previously a `<dm-list>` card template was only emitted for WordPress-content (`post_query`) sources, so feature-source maps fell back to bare feature names. The list now builds a card template from the same popup slots as the infowindow (image, eyebrow, title, address, text/table, chips, action). Rebuilt `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.5, which hides empty card fields and lets feature cards without an action link still zoom on click.
-
-## [1.4.2] - 2026-06-16
-
-### Fixed
-- Restored the Dutch interface strings that 1.4.0/1.4.1 inadvertently reverted to English. Those releases rebuilt `assets/vendor/draad-maps.iife.js` from a component checkout that predated the Dutch i18n translations, so labels such as the map canvas ("Interactieve kaart") and infowindow close button ("Sluiten") regressed to English. The bundle is rebuilt from `@draadnl/map-components` 0.5.4, which carries the Dutch strings together with the GeoJSON/WFS popup and filter-dropdown fixes.
-
-## [1.4.1] - 2026-06-16
-
-### Fixed
-- Filter dropdown for GeoJSON/WFS sources is no longer clipped: when a filterable field has many distinct values the filter renders a multi-select dropdown, which previously displayed partly off-screen inside the filter panel and forced the panel to scroll. The bundled `@draadnl/map-components` (0.5.4) now positions the dropdown to escape the panel's overflow and flips it above the trigger when it sits near the bottom of the viewport.
-
-## [1.4.0] - 2026-06-16
+## [1.4.0] - 2026-06-17
 
 ### Added
 - GeoJSON and WFS data sources can now configure their popups with the same field slots as WordPress content: image, eyebrow, title, address, text, chips, and an action button — each mapped to a feature property. The image uses the dedicated media strip; "text" with one field renders a paragraph and with several fields renders a key/value table.
 - GeoJSON and WFS data sources now support filtering: pick which feature properties visitors can filter on ("Filterable fields"), wired into the existing map filter. Previously filtering was only available for WordPress content.
 - Admin "Load available fields" now populates per-slot dropdowns (single- and multi-select) for feature sources instead of a single show/label table.
+- Per-data-source marker colour: each WordPress-content or GeoJSON data source can pick a pin colour (green, blue, red, orange, pink, purple, yellow, grey) from the bundled Den Haag markers. Defaults to green.
 
 ### Changed
-- Rebuilt `assets/vendor/draad-maps.iife.js` (`@draadnl/map-components`): the wildcard feature infowindow now data-binds the media-slot image per feature and hides any popup element (heading, table row, chip, action) whose property is empty, so features with missing properties no longer show blank fields.
+- Rebuilt `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.5: the wildcard feature infowindow data-binds the media-slot image per feature and hides any popup element (heading, table row, chip, action) whose property is empty; `dm-list` cards mirror the infowindow content and zoom through an action-less wrapper.
+- Assets are now versioned by their actual version instead of `filemtime()` timestamps — plugin-owned assets use `DRAAD_MAPS_VERSION`, and the vendored bundle uses the map-components package version (new `DRAAD_MAPS_COMPONENTS_VERSION`).
+
+### Fixed
+- GeoJSON (and WordPress-content) markers now render the bundled Den Haag pins instead of the grey SVG fallback. Feature sources never received an `icon` attribute, so the component fell back to a non-existent `assets/vendor/markers/marker.png`; the renderer now emits `icon`/`icon-hover`/`icon-active` (pointing at `assets/markers/`) on `dm-marker`, `dm-geojson` and `dm-wfs`. (WFS point markers still need icon support in `@draadnl/map-components` before the attributes take effect.)
+- Filter dropdown for GeoJSON/WFS sources is no longer clipped: a multi-select dropdown for high-cardinality fields now escapes the filter panel's overflow and flips above the trigger near the bottom of the viewport.
+- GeoJSON/WFS list-card key/value tables are now styled to match the infowindow's two-column layout. The theme CSS targeted the parts on `dm-list`, but the cards render inside a slotted `<div slot="list">` that owns its own shadow tree, so the `::part()` rules never matched; they now target the slotted host, with a little space above the table.
+- Tightened the eyebrow -> title gap in `dm-list` cards: a high-specificity flow-rhythm rule overrode the intended eyebrow tightening, so the title always sat 24px below its label. `@draadnl/map-components` now excludes the eyebrow label from the flow rhythm, so the gap is set via `--draad-map-components-eyebrow-margin-block-start` (12px in the Den Haag theme).
 
 ### Compatibility
 - Existing GeoJSON/WFS maps configured with the old property mapping keep rendering their auto-generated data table; configure the new popup slots to opt into the richer layout.
