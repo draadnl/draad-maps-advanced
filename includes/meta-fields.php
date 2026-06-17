@@ -105,6 +105,7 @@ function draad_maps_sanitize_datasources( string $json ): string {
 			'type'         => $type,
 			'label'        => sanitize_text_field( $ds['label'] ?? '' ),
 			'display_only' => ! empty( $ds['display_only'] ),
+			'marker_color' => draad_maps_sanitize_marker_color( $ds['marker_color'] ?? '' ),
 		];
 
 		switch ( $type ) {
@@ -143,6 +144,15 @@ function draad_maps_sanitize_datasources( string $json ): string {
 	}
 
 	return wp_json_encode( $sanitized );
+}
+
+/**
+ * Validate a marker colour against the bundled pin set, defaulting to green.
+ */
+function draad_maps_sanitize_marker_color( string $color ): string {
+	$color = sanitize_key( $color );
+
+	return array_key_exists( $color, draad_maps_marker_colors() ) ? $color : 'green';
 }
 
 /**

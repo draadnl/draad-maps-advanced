@@ -2197,7 +2197,7 @@ svg.leaflet-image-layer.leaflet-interactive path {\r
 }
 
 /* Vertical gap between body elements */
-.list__card a > :not(.featured-image):not(img) + :not(.featured-image):not(img) {
+.list__card a > :not(.featured-image):not(img):not(.label):not([data-label]) + :not(.featured-image):not(img) {
 	margin-block-start: 24px;
 }
 

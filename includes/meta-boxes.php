@@ -310,6 +310,13 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 					<p class="description"><?php esc_html_e( 'Use this for reference layers such as district boundaries.', 'draad-maps' ); ?></p>
 				</td>
 			</tr>
+			<tr class="draad-ds-marker-color-row"<?php echo 'wms' === $type ? ' style="display:none"' : ''; ?>>
+				<th><label><?php esc_html_e( 'Marker color', 'draad-maps' ); ?></label></th>
+				<td>
+					<?php draad_maps_render_marker_color_select( $ds['marker_color'] ?? '' ); ?>
+					<p class="description"><?php esc_html_e( 'Pin colour for this data source\'s markers.', 'draad-maps' ); ?></p>
+				</td>
+			</tr>
 		</table>
 
 		<div class="draad-ds-fields draad-ds-fields--post-query" <?php echo $type !== 'post_query' ? 'style="display:none"' : ''; ?>>
@@ -620,6 +627,17 @@ function draad_maps_render_meta_key_select( string $class, string $selected_valu
 	<?php
 }
 
+function draad_maps_render_marker_color_select( string $selected ) {
+	$selected = '' !== $selected ? $selected : 'green';
+	?>
+	<select class="draad-ds-marker-color">
+		<?php foreach ( draad_maps_marker_colors() as $value => $label ) : ?>
+			<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $selected, $value ); ?>><?php echo esc_html( $label ); ?></option>
+		<?php endforeach; ?>
+	</select>
+	<?php
+}
+
 function draad_maps_render_datasource_template( array $public_post_types ) {
 	?>
 	<script type="text/template" id="draad-datasource-template">
@@ -652,6 +670,13 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 						<?php echo esc_js( __( 'Show on the map, but hide in the list view and filters', 'draad-maps' ) ); ?>
 					</label>
 					<p class="description"><?php echo esc_js( __( 'Use this for reference layers such as district boundaries.', 'draad-maps' ) ); ?></p>
+				</td>
+			</tr>
+			<tr class="draad-ds-marker-color-row">
+				<th><label><?php echo esc_js( __( 'Marker color', 'draad-maps' ) ); ?></label></th>
+				<td>
+					<?php draad_maps_render_marker_color_select( '' ); ?>
+					<p class="description"><?php echo esc_js( __( 'Pin colour for this data source\'s markers.', 'draad-maps' ) ); ?></p>
 				</td>
 			</tr>
 		</table>

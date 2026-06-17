@@ -17,20 +17,18 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 		return;
 	}
 
-	$admin_css_path = DRAAD_MAPS_DIR . 'assets/css/admin.css';
 	wp_enqueue_style(
 		'draad-maps-admin',
 		DRAAD_MAPS_URL . 'assets/css/admin.css',
 		[],
-		file_exists( $admin_css_path ) ? filemtime( $admin_css_path ) : DRAAD_MAPS_VERSION
+		DRAAD_MAPS_VERSION
 	);
 
-	$admin_js_path = DRAAD_MAPS_DIR . 'assets/js/admin.js';
 	wp_enqueue_script(
 		'draad-maps-admin',
 		DRAAD_MAPS_URL . 'assets/js/admin.js',
 		[],
-		file_exists( $admin_js_path ) ? filemtime( $admin_js_path ) : DRAAD_MAPS_VERSION,
+		DRAAD_MAPS_VERSION,
 		true
 	);
 
@@ -67,9 +65,8 @@ function draad_maps_enqueue_frontend_assets() {
 	$enqueued = true;
 
 	// Icon sprite must be defined before the IIFE instantiates components.
-	$sprite_path = DRAAD_MAPS_DIR . 'assets/js/denhaag-sprite.js';
 	$sprite_url  = DRAAD_MAPS_URL . 'assets/js/denhaag-sprite.js';
-	$sprite_ver  = file_exists( $sprite_path ) ? filemtime( $sprite_path ) : DRAAD_MAPS_VERSION;
+	$sprite_ver  = DRAAD_MAPS_VERSION;
 
 	wp_enqueue_script(
 		'draad-maps-denhaag-sprite',
@@ -79,9 +76,8 @@ function draad_maps_enqueue_frontend_assets() {
 		false
 	);
 
-	$iife_path = DRAAD_MAPS_DIR . 'assets/vendor/draad-maps.iife.js';
 	$iife_url  = DRAAD_MAPS_URL . 'assets/vendor/draad-maps.iife.js';
-	$iife_ver  = file_exists( $iife_path ) ? filemtime( $iife_path ) : DRAAD_MAPS_VERSION;
+	$iife_ver  = DRAAD_MAPS_COMPONENTS_VERSION;
 
 	wp_enqueue_script(
 		'draad-maps',
@@ -110,9 +106,8 @@ function draad_maps_enqueue_frontend_assets() {
 		'before'
 	);
 
-	$tokens_path = DRAAD_MAPS_DIR . 'assets/css/denhaag-tokens.css';
 	$tokens_url  = DRAAD_MAPS_URL . 'assets/css/denhaag-tokens.css';
-	$tokens_ver  = file_exists( $tokens_path ) ? filemtime( $tokens_path ) : DRAAD_MAPS_VERSION;
+	$tokens_ver  = DRAAD_MAPS_VERSION;
 
 	wp_enqueue_style(
 		'draad-maps-denhaag-tokens',
@@ -121,9 +116,8 @@ function draad_maps_enqueue_frontend_assets() {
 		$tokens_ver
 	);
 
-	$theme_path = DRAAD_MAPS_DIR . 'assets/css/denhaag-theme.css';
 	$theme_url  = DRAAD_MAPS_URL . 'assets/css/denhaag-theme.css';
-	$theme_ver  = file_exists( $theme_path ) ? filemtime( $theme_path ) : DRAAD_MAPS_VERSION;
+	$theme_ver  = DRAAD_MAPS_VERSION;
 
 	wp_enqueue_style(
 		'draad-maps-denhaag-theme',

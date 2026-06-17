@@ -4,6 +4,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Marker pin colours bundled under assets/markers/ (marker-{color}.png, plus
+ * -hover- and -active- variants). Green is the Den Haag default.
+ *
+ * @return array<string, string> colour slug => human-readable label
+ */
+function draad_maps_marker_colors(): array {
+	return [
+		'green'  => __( 'Green', 'draad-maps' ),
+		'blue'   => __( 'Blue', 'draad-maps' ),
+		'red'    => __( 'Red', 'draad-maps' ),
+		'orange' => __( 'Orange', 'draad-maps' ),
+		'pink'   => __( 'Pink', 'draad-maps' ),
+		'purple' => __( 'Purple', 'draad-maps' ),
+		'yellow' => __( 'Yellow', 'draad-maps' ),
+		'grey'   => __( 'Grey', 'draad-maps' ),
+	];
+}
+
+/**
+ * Build icon / icon-hover / icon-active attributes pointing at the bundled
+ * Den Haag marker PNGs, so dm-marker, dm-geojson and dm-wfs render the themed
+ * pins instead of the components' grey SVG fallback. Defaults to green.
+ */
+function draad_maps_marker_icon_attrs( string $color = '' ): string {
+	$color = sanitize_key( $color );
+	if ( ! array_key_exists( $color, draad_maps_marker_colors() ) ) {
+		$color = 'green';
+	}
+
+	$base = DRAAD_MAPS_URL . 'assets/markers/';
+
+	return ' icon="' . esc_url( $base . 'marker-' . $color . '.png' ) . '"'
+		. ' icon-hover="' . esc_url( $base . 'marker-hover-' . $color . '.png' ) . '"'
+		. ' icon-active="' . esc_url( $base . 'marker-active-' . $color . '.png' ) . '"';
+}
+
 function draad_maps_get_post_field( WP_Post $post, string $field ): string {
 	switch ( $field ) {
 		case 'post_title':
@@ -83,6 +120,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$filter_properties = $config['filter_properties'] ?? '';
 	$filter_labels     = $config['filter_labels'] ?? '';
 	$map_action_label  = $config['_map_action_label'] ?? '';
+	$marker_icon_attrs = draad_maps_marker_icon_attrs( $config['marker_color'] ?? '' );
 
 	if ( ! $post_type || ! $location_field ) {
 		return '';
@@ -255,7 +293,7 @@ function draad_maps_render_post_query( array $config ): string {
 		$props_attr = ! empty( $props ) ? ' properties="' . esc_attr( wp_json_encode( $props ) ) . '"' : '';
 
 		if ( $has_infowindow ) {
-			$markers_html .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $props_attr . '></dm-marker>';
+			$markers_html .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $marker_icon_attrs . $props_attr . '></dm-marker>';
 
 			$infowindow = '<dm-infowindow for="' . esc_attr( $marker_id ) . '">';
 
@@ -295,7 +333,7 @@ function draad_maps_render_post_query( array $config ): string {
 			$infowindows .= $infowindow;
 		} else {
 			$url_attr      = $permalink ? ' data-url="' . esc_url( $permalink ) . '"' : '';
-			$markers_html .= '<dm-marker center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $url_attr . $props_attr . '></dm-marker>';
+			$markers_html .= '<dm-marker center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $marker_icon_attrs . $url_attr . $props_attr . '></dm-marker>';
 		}
 	}
 
@@ -358,6 +396,9 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
 	if ( $label ) {
 		$attrs .= ' label="' . esc_attr( $label ) . '"';
 	}
+
+	// Den Haag marker pins for point features (ignored for line/polygon geometry).
+	$attrs .= draad_maps_marker_icon_attrs( $config['marker_color'] ?? '' );
 
 	// Filtering: which feature properties visitors can filter on.
 	$filter_fields = draad_maps_normalize_keys( $config['filter_fields'] ?? [] );
@@ -449,8 +490,8 @@ function draad_maps_feature_popup_body( array $config ): string {
 	} elseif ( count( $text ) > 1 ) {
 		$out .= '<dl class="dm-infowindow-data" part="data-table">';
 		foreach ( $text as $key ) {
-			$out .= '<dt>' . esc_html( draad_maps_humanize_key( $key ) ) . '</dt>';
-			$out .= '<dd data-field="' . $bind( $key ) . '"></dd>';
+			$out .= '<dt part="data-key">' . esc_html( draad_maps_humanize_key( $key ) ) . '</dt>';
+			$out .= '<dd part="data-value" data-field="' . $bind( $key ) . '"></dd>';
 		}
 		$out .= '</dl>';
 	}

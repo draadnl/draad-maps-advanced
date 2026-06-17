@@ -277,6 +277,7 @@
 	--draad-map-components-list-card-radius:        var(--denhaag-border-radius);
 	--draad-map-components-list-card-heading-color: var(--denhaag-color-green-3);
 	--draad-map-components-list-card-text-color:    var(--denhaag-color-grey-4);
+	--draad-map-components-eyebrow-margin-block-start: 12px; /* label → title gap */
 	--draad-map-components-list-chip-bg:            transparent;
 	--draad-map-components-list-chip-border:        var(--denhaag-color-grey-2);
 	--draad-map-components-list-chip-color:         var(--denhaag-color-grey-4);
@@ -394,6 +395,26 @@
 .wp-block-draad-map-advanced dm-infowindow::part(link):focus-visible {
 	outline: 2px dashed var(--denhaag-color-ocher-5, hsl(47 100% 25%));
 	outline-offset: 2px;
+}
+
+/* List-card key/value table (multi-field GeoJSON/WFS popups). The cards render
+   inside the `<div slot="list">` shadow tree, which is the part host — dm-list
+   only receives it via <slot>, so the parts must be addressed on the slotted
+   div. Style it to match the infowindow's two-column layout instead of the
+   browser's indented default. */
+.wp-block-draad-map-advanced div[slot="list"]::part(data-table) {
+	margin: 0.75rem 0 0;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.25rem 0.75rem;
+}
+
+.wp-block-draad-map-advanced div[slot="list"]::part(data-key) {
+	font-weight: var(--denhaag-typography-weight-bold, 600);
+}
+
+.wp-block-draad-map-advanced div[slot="list"]::part(data-value) {
+	margin: 0;
 }
 
 /* Baseline for slotted / light-DOM content so it matches the component's

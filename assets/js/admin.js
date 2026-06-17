@@ -24,6 +24,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( active ) {
 			active.style.display = '';
 		}
+
+		// Marker colour applies to every marker source, not to WMS raster layers.
+		const markerRow = card.querySelector( '.draad-ds-marker-color-row' );
+		if ( markerRow ) markerRow.style.display = type === 'wms' ? 'none' : '';
 	}
 
 	// -------------------------------------------------------------------------
@@ -424,6 +428,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const label = card.querySelector( '.draad-ds-label' ).value;
 			const ds    = { type, label };
 			ds.display_only = card.querySelector( '.draad-ds-display-only' )?.checked || false;
+			ds.marker_color = card.querySelector( '.draad-ds-marker-color' )?.value || '';
 
 			switch ( type ) {
 				case 'post_query':
