@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-06-24
+
+### Added
+- Address search can be scoped to a municipality via a static `DRAAD_MAPS_ADDRESS_FILTER` constant (default `gemeentecode:0518`, Den Haag), emitted as the `address-filter` attribute on `<dm-search>`. Override it in `wp-config.php`; an empty value removes the restriction (all of the Netherlands).
+
+### Changed
+- Rebuilt `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.6: the external-link icon shows only on cross-origin action links, and the mobile map layout is reworked — the map keeps its `70svh` height at every width (no shrink just above mobile), the zoom control lays out horizontally, the infowindow keeps even spacing and clears the zoom, grows the map to fit, and goes full-width on narrow screens.
+
+### Fixed
+- Removed the dead light-DOM CSS that tried to hide the infowindow's external-link icon for internal links — it could never reach the action inside the component's shadow DOM. The icon is now resolved in the component (cross-origin only).
+
 ## [1.4.0] - 2026-06-17
 
 ### Added

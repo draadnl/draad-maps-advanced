@@ -3,7 +3,7 @@
  * Plugin Name: Draad Maps Advanced
  * Plugin URI:  https://draad.nl
  * Description: Create and embed interactive maps using the draad-maps web component library.
- * Version:     1.4.0
+ * Version:     1.4.1
  * Author:      Draad
  * License:     GPL-2.0-or-later
  * Text Domain: draad-maps
@@ -14,8 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DRAAD_MAPS_VERSION', '1.4.0' );
-define( 'DRAAD_MAPS_COMPONENTS_VERSION', '0.5.5' ); // map-components package version (bump on re-vendor)
+define( 'DRAAD_MAPS_VERSION', '1.4.1' );
+define( 'DRAAD_MAPS_COMPONENTS_VERSION', '0.5.6' ); // map-components package version (bump on re-vendor)
 
 // Static PDOK Locatieserver filter applied to all address searches. Use a gemeentecode
 // (e.g. '0518' = Den Haag); name won't work — Den Haag is stored as "'s-Gravenhage".
