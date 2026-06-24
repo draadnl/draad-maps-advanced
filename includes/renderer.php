@@ -25,20 +25,7 @@ function draad_maps_render( int $map_id ): string {
 	$list_hide_address = get_post_meta( $map_id, '_draad_map_list_hide_address', true );
 	$action_label      = get_post_meta( $map_id, '_draad_map_action_label', true );
 
-	// The bundled web component prepends an external-link svg to every
-	// .action element. Hide it for internal links (same host as the site, or
-	// site-relative paths starting with a single slash).
-	$home_host        = (string) wp_parse_url( home_url(), PHP_URL_HOST );
-	$internal_css     = sprintf(
-		'.action[href*="//%1$s/"] > svg:first-child,'
-		. 'a[href*="//%1$s/"] .action > svg:first-child,'
-		. '.action[href^="/"]:not([href^="//"]) > svg:first-child,'
-		. 'a[href^="/"]:not([href^="//"]) .action > svg:first-child{display:none}',
-		esc_attr( $home_host )
-	);
-
 	$output = '<dm-map center="' . esc_attr( $center ) . '" zoom="' . esc_attr( $zoom ) . '">';
-	$output .= '<style>' . $internal_css . '</style>';
 
 	if ( $search_enabled ) {
 		$label   = get_post_meta( $map_id, '_draad_map_search_label', true );
@@ -112,11 +99,10 @@ function draad_maps_render( int $map_id ): string {
 			$output .= '<template>';
 			// Hide the action button on cards whose link has no href (i.e.,
 			// posts with no website and no post content). The bundle strips
-			// the href attribute when properties.url is empty. The second
-			// rule hides the external-link icon when the link is internal
-			// (cards live in the dm-list shadow DOM so the rule needs to be
-			// inlined here, not just in the dm-map style block above).
-			$output .= '<style>a:not([href]) .action{display:none}' . $internal_css . '</style>';
+			// the href attribute when properties.url is empty. The external-link
+			// icon itself is handled by the component (only added for cross-origin
+			// links), so no icon-hiding rule is needed here.
+			$output .= '<style>a:not([href]) .action{display:none}</style>';
 			$output .= '<a data-href="properties.url">';
 			$output .= '<img data-src="properties.image" alt="" />';
 			$output .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
