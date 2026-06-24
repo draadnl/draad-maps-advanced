@@ -15,7 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'DRAAD_MAPS_VERSION', '1.4.0' );
-define( 'DRAAD_MAPS_COMPONENTS_VERSION', '0.5.5' ); // map-components package version (bump on re-vendor)
+define( 'DRAAD_MAPS_COMPONENTS_VERSION', '0.5.6-dev' ); // map-components package version (bump on re-vendor)
+
+// Static PDOK Locatieserver filter applied to all address searches. Use a gemeentecode
+// (e.g. '0518' = Den Haag); name won't work — Den Haag is stored as "'s-Gravenhage".
+// Empty string = no restriction (all of the Netherlands).
+if ( ! defined( 'DRAAD_MAPS_ADDRESS_FILTER' ) ) {
+	define( 'DRAAD_MAPS_ADDRESS_FILTER', 'gemeentecode:0518' );
+}
 define( 'DRAAD_MAPS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DRAAD_MAPS_URL', plugin_dir_url( __FILE__ ) );
 

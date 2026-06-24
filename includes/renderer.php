@@ -46,6 +46,9 @@ function draad_maps_render( int $map_id ): string {
 		if ( $label ) {
 			$output .= ' label="' . esc_attr( $label ) . '"';
 		}
+		if ( DRAAD_MAPS_ADDRESS_FILTER ) {
+			$output .= ' address-filter="' . esc_attr( DRAAD_MAPS_ADDRESS_FILTER ) . '"';
+		}
 		$output .= '></dm-search>';
 	}
 
