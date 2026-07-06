@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-07-06
+
+### Fixed
+- The block root (`.wp-block-draad-map-advanced`) now creates its own stacking context (`position: relative; z-index: 0`), so map layers can no longer stack above host-theme overlays such as sticky headers and menus.
+
+### Changed
+- Re-vendored `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.6 (latest published version).
+
 ## [1.4.1] - 2026-06-24
 
 ### Added
