@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Search: selecting a map result (feature/marker) now highlights the marker itself — active icon, brought to front — and opens its infowindow, instead of only moving the map.
+- Hovering a selected marker no longer leaves it stuck on the hover icon; it returns to the active icon when the mouse leaves.
 
 ### Changed
 - Re-vendored `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.8.
