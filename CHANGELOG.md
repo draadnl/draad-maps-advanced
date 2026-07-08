@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2026-07-08
+
+### Added
+- Filter panel close button: the `dm-filter` panel header now shows a close (×) button in the top-right that closes the panel (all variants).
+
+### Fixed
+- Search: selecting a map result (feature/marker) now highlights the marker itself — active icon, brought to front — and opens its infowindow, instead of only moving the map.
+- Hovering a selected marker no longer leaves it stuck on the hover icon; it returns to the active icon when the mouse leaves.
+
+### Changed
+- Re-vendored `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.8.
+
 ## [1.4.3] - 2026-07-06
 
 ### Fixed
