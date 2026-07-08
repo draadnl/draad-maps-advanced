@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Filter panel close button: the `dm-filter` panel header now shows a close (×) button in the top-right that closes the panel (all variants).
 
 ### Fixed
-- Search: selecting a map result (feature/marker) now highlights the location and opens its infowindow, instead of only moving the map.
+- Search: selecting a map result (feature/marker) now highlights the marker itself — active icon, brought to front — and opens its infowindow, instead of only moving the map.
 
 ### Changed
 - Re-vendored `assets/vendor/draad-maps.iife.js` from `@draadnl/map-components` 0.5.8.
