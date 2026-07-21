@@ -17,18 +17,20 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 		return;
 	}
 
+	// ponytail: filemtime as version — the plugin version alone leaves edited
+	// admin assets cached in the browser between releases.
 	wp_enqueue_style(
 		'draad-maps-admin',
 		DRAAD_MAPS_URL . 'assets/css/admin.css',
 		[],
-		DRAAD_MAPS_VERSION
+		(string) filemtime( DRAAD_MAPS_DIR . 'assets/css/admin.css' )
 	);
 
 	wp_enqueue_script(
 		'draad-maps-admin',
 		DRAAD_MAPS_URL . 'assets/js/admin.js',
 		[],
-		DRAAD_MAPS_VERSION,
+		(string) filemtime( DRAAD_MAPS_DIR . 'assets/js/admin.js' ),
 		true
 	);
 
