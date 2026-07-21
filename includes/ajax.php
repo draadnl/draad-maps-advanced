@@ -125,6 +125,31 @@ function draad_maps_ajax_fetch_geojson_properties() {
 	wp_send_json_success( $keys );
 }
 
+/**
+ * Field keys offered as filterable properties for a post_query source. Drops the
+ * built-in post fields and unwraps "taxonomy:foo" — draad_maps_render_post_query()
+ * resolves filter properties as meta keys or bare taxonomy names.
+ *
+ * @return string[]
+ */
+function draad_maps_filter_field_options( string $post_type ): array {
+	if ( '' === $post_type ) {
+		return [];
+	}
+
+	$built_in = [ 'post_title', 'post_excerpt', 'post_content', 'featured_image' ];
+	$out      = [];
+
+	foreach ( draad_maps_get_meta_keys_for_post_type( $post_type ) as $key ) {
+		if ( in_array( $key, $built_in, true ) ) {
+			continue;
+		}
+		$out[] = str_starts_with( $key, 'taxonomy:' ) ? substr( $key, 9 ) : $key;
+	}
+
+	return array_values( array_unique( $out ) );
+}
+
 function draad_maps_get_meta_keys_for_post_type( string $post_type ): array {
 	global $wpdb;
 

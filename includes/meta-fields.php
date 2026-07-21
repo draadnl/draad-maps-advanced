@@ -126,6 +126,8 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				$entry['terms_taxonomy']    = sanitize_key( $ds['terms_taxonomy'] ?? '' );
 				$entry['filter_properties'] = sanitize_text_field( $ds['filter_properties'] ?? '' );
 				$entry['filter_labels']     = sanitize_text_field( $ds['filter_labels'] ?? '' );
+				$entry['filter_types']      = sanitize_text_field( $ds['filter_types'] ?? '' );
+				$entry['filter_bool_labels'] = sanitize_text_field( $ds['filter_bool_labels'] ?? '' );
 				break;
 
 			case 'geojson_url':
@@ -184,10 +186,32 @@ function draad_maps_sanitize_feature_popup( array $ds ): array {
 		'popup_action_field' => $key( $ds['popup_action_field'] ?? '' ),
 		'popup_action_label' => sanitize_text_field( $ds['popup_action_label'] ?? '' ),
 		'filter_fields'      => draad_maps_sanitize_key_list( $ds['filter_fields'] ?? [] ),
+		// Aligned by index with filter_fields, so empties are kept, not squeezed out.
+		'filter_labels'      => array_map(
+			static fn( $v ) => sanitize_text_field( (string) $v ),
+			is_array( $ds['filter_labels'] ?? null ) ? $ds['filter_labels'] : []
+		),
+		'filter_types'       => array_map(
+			'draad_maps_sanitize_filter_type',
+			is_array( $ds['filter_types'] ?? null ) ? $ds['filter_types'] : []
+		),
+		'filter_bool_labels' => array_map(
+			static fn( $v ) => sanitize_text_field( (string) $v ),
+			is_array( $ds['filter_bool_labels'] ?? null ) ? $ds['filter_bool_labels'] : []
+		),
 		'available_fields'   => draad_maps_sanitize_key_list( $ds['available_fields'] ?? [] ),
 		// Retained so maps configured before the popup builder keep rendering.
 		'property_mapping'   => draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] ),
 	];
+}
+
+/**
+ * Validate a filter type against what dm-filter's `filter-types` accepts.
+ */
+function draad_maps_sanitize_filter_type( $type ): string {
+	$type = sanitize_key( (string) $type );
+
+	return in_array( $type, [ 'auto', 'bool', 'checkbox', 'range', 'dropdown' ], true ) ? $type : 'auto';
 }
 
 /**

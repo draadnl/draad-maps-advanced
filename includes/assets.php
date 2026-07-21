@@ -47,6 +47,14 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 			'errorFetching'      => __( 'Could not load fields. Check the URL and try again.', 'draad-maps' ),
 			'networkError'       => __( 'Service is unreachable: ', 'draad-maps' ),
 			'removeDatasource'   => __( 'Remove this data source', 'draad-maps' ),
+			'addField'           => __( 'Add a field…', 'draad-maps' ),
+			'addFieldNamed'      => __( 'Add', 'draad-maps' ),
+			'removeField'        => __( 'Remove field', 'draad-maps' ),
+			'noFieldsAvailable'  => __( 'No fields available — type a name to add one.', 'draad-maps' ),
+			'filterLabel'        => __( 'Display name', 'draad-maps' ),
+			'filterType'         => __( 'Filter type', 'draad-maps' ),
+			'filterBoolLabel'    => __( 'Checkbox text', 'draad-maps' ),
+			'filterBoolDefault'  => __( 'Ja', 'draad-maps' ),
 			'datasourcePrefix'   => __( 'Data source ', 'draad-maps' ),
 			'searchPlaceholder'  => __( 'Search an address or place…', 'draad-maps' ),
 			'searchNoResults'    => __( 'No results found.', 'draad-maps' ),
@@ -79,7 +87,8 @@ function draad_maps_enqueue_frontend_assets() {
 	);
 
 	$iife_url  = DRAAD_MAPS_URL . 'assets/vendor/draad-maps.iife.js';
-	$iife_ver  = DRAAD_MAPS_COMPONENTS_VERSION;
+	$iife_path = DRAAD_MAPS_DIR . 'assets/vendor/draad-maps.iife.js';
+	$iife_ver  = file_exists( $iife_path ) ? (string) filemtime( $iife_path ) : DRAAD_MAPS_COMPONENTS_VERSION;
 
 	wp_enqueue_script(
 		'draad-maps',

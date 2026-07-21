@@ -34,6 +34,25 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// Meta key AJAX
 	// -------------------------------------------------------------------------
 
+	// Built-in post fields the AJAX list prepends — usable as popup slots, but not
+	// as filter properties (render_post_query resolves those as meta/taxonomy).
+	const POST_FIELDS = [ 'post_title', 'post_excerpt', 'post_content', 'featured_image' ];
+
+	// Whatever dm-filter's `filter-types` accepts.
+	const FILTER_TYPES = [ 'auto', 'bool', 'checkbox', 'range', 'dropdown' ];
+
+	// Filterable keys: drop the built-in post fields and unwrap "taxonomy:foo" —
+	// render_post_query matches bare taxonomy names via taxonomy_exists().
+	function filterKeys( keys ) {
+		const out = [];
+		keys.forEach( ( key ) => {
+			if ( POST_FIELDS.includes( key ) ) return;
+			const bare = key.startsWith( 'taxonomy:' ) ? key.slice( 9 ) : key;
+			if ( bare && ! out.includes( bare ) ) out.push( bare );
+		} );
+		return out;
+	}
+
 	function loadMetaKeys( card, postType, preserveValues ) {
 		const selects = [
 			card.querySelector( '.draad-ds-location-field' ),
@@ -44,11 +63,20 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			card.querySelector( '.draad-ds-address-field' ),
 			card.querySelector( '.draad-ds-website-field' ),
 		];
+		const filterSel = card.querySelector( '.draad-ds-filter-properties' );
+
+		if ( ! preserveValues ) {
+			selects.forEach( ( sel ) => {
+				if ( sel ) sel.value = '';
+			} );
+			if ( filterSel ) {
+				Array.from( filterSel.options ).forEach( ( o ) => { o.selected = false; } );
+			}
+		}
 
 		if ( ! postType ) {
-			selects.forEach( ( sel ) => {
-				if ( sel ) sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
-			} );
+			selects.forEach( ( sel ) => repopulateFieldSelect( sel, [] ) );
+			repopulateFieldSelect( filterSel, [] );
 			return;
 		}
 
@@ -62,28 +90,245 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			.then( ( r ) => r.json() )
 			.then( ( data ) => {
 				if ( ! data.success ) return;
-				const keys = data.data;
-
-				selects.forEach( ( sel ) => {
-					if ( ! sel ) return;
-					const prev = preserveValues ? sel.value : '';
-					sel.innerHTML = '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
-					keys.forEach( ( key ) => {
-						const opt       = document.createElement( 'option' );
-						opt.value       = key;
-						opt.textContent = key;
-						if ( key === prev ) opt.selected = true;
-						sel.appendChild( opt );
-					} );
-					if ( prev && sel.value !== prev ) {
-						const opt       = document.createElement( 'option' );
-						opt.value       = prev;
-						opt.textContent = prev;
-						opt.selected    = true;
-						sel.appendChild( opt );
-					}
-				} );
+				selects.forEach( ( sel ) => repopulateFieldSelect( sel, data.data ) );
+				repopulateFieldSelect( filterSel, filterKeys( data.data ) );
 			} );
+	}
+
+	// -------------------------------------------------------------------------
+	// Token field — <select multiple> enhanced into a select2-style picker
+	// -------------------------------------------------------------------------
+	// ponytail: progressive enhancement, no dependency. The <select> stays the
+	// source of truth (options = vocabulary, selected options = tokens), so the
+	// serializers keep reading selectedOptions. Per-token filter label/type ride
+	// along on the option's dataset.
+
+	// Mirror of draad_maps_humanize_key() in PHP.
+	function humanize( key ) {
+		return key
+			.replace( /[_-]+/g, ' ' )
+			.replace( /\b\w/g, ( c ) => c.toUpperCase() );
+	}
+
+	function tokenWrap( select ) {
+		const next = select.nextElementSibling;
+		return next && next.classList.contains( 'draad-tokens' ) ? next : null;
+	}
+
+	function tokenSelect( el ) {
+		const wrap = el.closest( '.draad-tokens' );
+		return wrap ? wrap.previousElementSibling : null;
+	}
+
+	function tokenOption( select, value ) {
+		return Array.from( select.options ).find( ( o ) => o.value === value ) || null;
+	}
+
+	function initTokenField( select ) {
+		if ( ! select || select.dataset.tokenReady ) return;
+		select.dataset.tokenReady = '1';
+		select.hidden             = true;
+		select.tabIndex           = -1;
+
+		const wrap = document.createElement( 'div' );
+		wrap.className = 'draad-tokens';
+		wrap.innerHTML =
+			'<div class="draad-tokens__box">' +
+				'<ul class="draad-tokens__list"></ul>' +
+				'<input type="text" class="draad-tokens__input" role="combobox" ' +
+					'aria-expanded="false" aria-autocomplete="list" autocomplete="off" ' +
+					'placeholder="' + draadMapsAdmin.i18n.addField + '" />' +
+				'<ul class="draad-tokens__menu" role="listbox" hidden></ul>' +
+			'</div>' +
+			( '1' === select.dataset.filterMeta ? '<table class="draad-tokens__meta"></table>' : '' );
+
+		select.insertAdjacentElement( 'afterend', wrap );
+		renderTokens( select );
+	}
+
+	function initTokenFields( root ) {
+		root.querySelectorAll( 'select[data-tokens]' ).forEach( initTokenField );
+	}
+
+	function renderTokens( select ) {
+		const wrap = select && tokenWrap( select );
+		if ( ! wrap ) return;
+
+		const list = wrap.querySelector( '.draad-tokens__list' );
+		const opts = Array.from( select.selectedOptions );
+
+		list.innerHTML = '';
+		opts.forEach( ( opt ) => {
+			const li = document.createElement( 'li' );
+			li.className     = 'draad-tokens__token';
+			li.dataset.value = opt.value;
+			li.innerHTML     = '<code></code><button type="button" class="draad-tokens__remove" tabindex="-1"></button>';
+			li.querySelector( 'code' ).textContent = opt.value;
+			li.querySelector( 'button' ).setAttribute( 'aria-label', draadMapsAdmin.i18n.removeField + ' ' + opt.value );
+			list.appendChild( li );
+		} );
+
+		renderTokenMeta( select, opts );
+	}
+
+	// Per-token label + filter type. Rebuilt only when the token set changes, so
+	// typing in a label input never loses focus.
+	function renderTokenMeta( select, opts ) {
+		const table = tokenWrap( select ).querySelector( '.draad-tokens__meta' );
+		if ( ! table ) return;
+
+		table.classList.toggle( 'is-empty', 0 === opts.length );
+		table.innerHTML = '';
+		if ( ! opts.length ) return;
+
+		const head = document.createElement( 'thead' );
+		head.innerHTML =
+			'<tr><th></th><th>' + draadMapsAdmin.i18n.filterLabel +
+			'</th><th>' + draadMapsAdmin.i18n.filterType +
+			'</th><th>' + draadMapsAdmin.i18n.filterBoolLabel + '</th></tr>';
+		table.appendChild( head );
+
+		const body = document.createElement( 'tbody' );
+		opts.forEach( ( opt ) => {
+			const type = opt.dataset.type || 'auto';
+			const tr   = document.createElement( 'tr' );
+			tr.dataset.value = opt.value;
+			// The bool cell is rendered for every row and hidden unless the type
+			// is bool — cheaper than rebuilding the row when the type changes,
+			// which would blur whatever the editor was typing in.
+			tr.className     = 'bool' === type ? 'is-bool' : '';
+			tr.innerHTML =
+				'<td class="draad-tokens__meta-key"><code></code></td>' +
+				'<td><input type="text" class="draad-tokens__label" /></td>' +
+				'<td><select class="draad-tokens__type">' +
+					FILTER_TYPES.map( ( t ) =>
+						'<option value="' + t + '"' + ( t === type ? ' selected' : '' ) + '>' + t + '</option>'
+					).join( '' ) +
+				'</select></td>' +
+				'<td class="draad-tokens__meta-bool">' +
+					'<input type="text" class="draad-tokens__bool-label" />' +
+				'</td>';
+			tr.querySelector( 'code' ).textContent = opt.value;
+
+			const input       = tr.querySelector( '.draad-tokens__label' );
+			input.value       = opt.dataset.label || '';
+			input.placeholder = humanize( opt.value );
+
+			const boolInput       = tr.querySelector( '.draad-tokens__bool-label' );
+			boolInput.value       = opt.dataset.boolLabel || '';
+			boolInput.placeholder = draadMapsAdmin.i18n.filterBoolDefault;
+
+			body.appendChild( tr );
+		} );
+		table.appendChild( body );
+	}
+
+	function renderTokenMenu( select, query ) {
+		const wrap  = tokenWrap( select );
+		const menu  = wrap.querySelector( '.draad-tokens__menu' );
+		const input = wrap.querySelector( '.draad-tokens__input' );
+		const q     = query.trim();
+		const lower = q.toLowerCase();
+		const taken = Array.from( select.selectedOptions ).map( ( o ) => o.value );
+
+		menu.innerHTML = '';
+
+		Array.from( select.options )
+			.map( ( o ) => o.value )
+			.filter( ( v ) => v && ! taken.includes( v ) && ( ! lower || v.toLowerCase().includes( lower ) ) )
+			.forEach( ( v ) => {
+				const li = document.createElement( 'li' );
+				li.className     = 'draad-tokens__option';
+				li.dataset.value = v;
+				li.setAttribute( 'role', 'option' );
+				li.textContent   = v;
+				menu.appendChild( li );
+			} );
+
+		// Free entry: a key that isn't in the loaded list is still addable — the
+		// source may not have been fetched yet.
+		const known = Array.from( select.options ).some( ( o ) => o.value.toLowerCase() === lower );
+		if ( q && ! known ) {
+			const li = document.createElement( 'li' );
+			li.className     = 'draad-tokens__option draad-tokens__option--new';
+			li.dataset.value = q;
+			li.setAttribute( 'role', 'option' );
+			li.innerHTML     = '<em></em>';
+			li.firstChild.textContent = draadMapsAdmin.i18n.addFieldNamed + ' ';
+			li.append( q );
+			menu.appendChild( li );
+		}
+
+		if ( ! menu.children.length ) {
+			menu.innerHTML = '<li class="draad-tokens__empty">' + draadMapsAdmin.i18n.noFieldsAvailable + '</li>';
+		}
+
+		menu.hidden = false;
+		input.setAttribute( 'aria-expanded', 'true' );
+		setActiveOption( menu, 0 );
+	}
+
+	function closeTokenMenu( select ) {
+		const wrap = select && tokenWrap( select );
+		if ( ! wrap ) return;
+		wrap.querySelector( '.draad-tokens__menu' ).hidden = true;
+		wrap.querySelector( '.draad-tokens__input' ).setAttribute( 'aria-expanded', 'false' );
+	}
+
+	function setActiveOption( menu, index ) {
+		const options = Array.from( menu.querySelectorAll( '.draad-tokens__option' ) );
+		if ( ! options.length ) return;
+		const next = ( index + options.length ) % options.length;
+		options.forEach( ( o, i ) => o.classList.toggle( 'is-active', i === next ) );
+		options[ next ].scrollIntoView( { block: 'nearest' } );
+	}
+
+	function moveActiveOption( select, delta ) {
+		const menu    = tokenWrap( select ).querySelector( '.draad-tokens__menu' );
+		const options = Array.from( menu.querySelectorAll( '.draad-tokens__option' ) );
+		const current = options.findIndex( ( o ) => o.classList.contains( 'is-active' ) );
+		setActiveOption( menu, current + delta );
+	}
+
+	function addToken( select, value ) {
+		const key = value.trim();
+		if ( ! key ) return;
+
+		let opt = tokenOption( select, key );
+		if ( ! opt ) {
+			opt             = document.createElement( 'option' );
+			opt.value       = key;
+			opt.textContent = key;
+			select.appendChild( opt );
+		}
+		opt.selected = true;
+		renderTokens( select );
+	}
+
+	function removeToken( select, value ) {
+		const opt = tokenOption( select, value );
+		if ( opt ) opt.selected = false;
+		renderTokens( select );
+	}
+
+	function tokenValues( select ) {
+		return select ? Array.from( select.selectedOptions ).map( ( o ) => o.value ) : [];
+	}
+
+	// Selected values plus their per-token label/type/bool label, aligned by index.
+	function tokenMeta( select ) {
+		const fields     = [];
+		const labels     = [];
+		const types      = [];
+		const boolLabels = [];
+		Array.from( select ? select.selectedOptions : [] ).forEach( ( o ) => {
+			fields.push( o.value );
+			labels.push( o.dataset.label || humanize( o.value ) );
+			types.push( o.dataset.type || 'auto' );
+			// Empty means "use the component default" — kept, not squeezed out.
+			boolLabels.push( 'bool' === o.dataset.type ? ( o.dataset.boolLabel || '' ) : '' );
+		} );
+		return { fields, labels, types, boolLabels };
 	}
 
 	// -------------------------------------------------------------------------
@@ -144,13 +389,22 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	];
 
 	// Rebuild a select's options from the loaded keys, preserving the current
-	// selection (works for both single and multiple selects).
+	// selection and any per-token filter label/type (works for both single and
+	// multiple selects).
 	function repopulateFieldSelect( sel, keys ) {
 		if ( ! sel ) return;
 		const isMulti  = sel.multiple;
-		const selected = isMulti
-			? Array.from( sel.selectedOptions ).map( ( o ) => o.value )
-			: [ sel.value ];
+		const chosen   = isMulti ? Array.from( sel.selectedOptions ) : [];
+		const selected = isMulti ? chosen.map( ( o ) => o.value ) : [ sel.value ];
+
+		const meta = {};
+		chosen.forEach( ( o ) => {
+			meta[ o.value ] = {
+				label:     o.dataset.label || '',
+				type:      o.dataset.type || '',
+				boolLabel: o.dataset.boolLabel || '',
+			};
+		} );
 
 		const all = keys.slice();
 		selected.forEach( ( v ) => {
@@ -163,8 +417,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			opt.value       = key;
 			opt.textContent = key;
 			if ( selected.includes( key ) ) opt.selected = true;
+			if ( meta[ key ] && meta[ key ].label ) opt.dataset.label = meta[ key ].label;
+			if ( meta[ key ] && meta[ key ].type ) opt.dataset.type = meta[ key ].type;
+			if ( meta[ key ] && meta[ key ].boolLabel ) opt.dataset.boolLabel = meta[ key ].boolLabel;
 			sel.appendChild( opt );
 		} );
+
+		renderTokens( sel );
 	}
 
 	function populateFeatureFields( section, keys ) {
@@ -284,6 +543,14 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			loadMetaKeys( card, e.target.value, false );
 			loadTaxonomies( card, e.target.value, false );
 		}
+
+		if ( e.target.classList.contains( 'draad-tokens__type' ) ) {
+			const select = tokenSelect( e.target );
+			const value  = e.target.closest( 'tr' ).dataset.value;
+			const opt    = select && tokenOption( select, value );
+			if ( opt ) opt.dataset.type = e.target.value;
+			e.target.closest( 'tr' ).classList.toggle( 'is-bool', 'bool' === e.target.value );
+		}
 	} );
 
 	repeater.addEventListener( 'click', ( e ) => {
@@ -291,6 +558,111 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const card = e.target.closest( '.draad-datasource-item' );
 			if ( card ) fetchAndPopulateProperties( card );
 		}
+	} );
+
+	// -------------------------------------------------------------------------
+	// Token field interactions
+	// -------------------------------------------------------------------------
+
+	repeater.addEventListener( 'click', ( e ) => {
+		const removeBtn = e.target.closest( '.draad-tokens__remove' );
+		if ( removeBtn ) {
+			const select = tokenSelect( removeBtn );
+			if ( select ) removeToken( select, removeBtn.closest( '.draad-tokens__token' ).dataset.value );
+			return;
+		}
+
+		// Clicking anywhere in the box focuses the input, like a real text field.
+		const box = e.target.closest( '.draad-tokens__box' );
+		if ( box ) box.querySelector( '.draad-tokens__input' ).focus();
+	} );
+
+	// mousedown, not click — the input's blur would close the menu first.
+	repeater.addEventListener( 'mousedown', ( e ) => {
+		const option = e.target.closest( '.draad-tokens__option' );
+		if ( ! option ) return;
+		e.preventDefault();
+
+		const select = tokenSelect( option );
+		if ( ! select ) return;
+		const input = tokenWrap( select ).querySelector( '.draad-tokens__input' );
+		addToken( select, option.dataset.value );
+		input.value = '';
+		renderTokenMenu( select, '' );
+	} );
+
+	repeater.addEventListener( 'input', ( e ) => {
+		if ( e.target.classList.contains( 'draad-tokens__input' ) ) {
+			const select = tokenSelect( e.target );
+			if ( select ) renderTokenMenu( select, e.target.value );
+			return;
+		}
+
+		if ( e.target.classList.contains( 'draad-tokens__label' ) ) {
+			const select = tokenSelect( e.target );
+			const opt    = select && tokenOption( select, e.target.closest( 'tr' ).dataset.value );
+			if ( opt ) opt.dataset.label = e.target.value;
+		}
+
+		if ( e.target.classList.contains( 'draad-tokens__bool-label' ) ) {
+			const select = tokenSelect( e.target );
+			const opt    = select && tokenOption( select, e.target.closest( 'tr' ).dataset.value );
+			if ( opt ) opt.dataset.boolLabel = e.target.value;
+		}
+	} );
+
+	repeater.addEventListener( 'keydown', ( e ) => {
+		if ( ! e.target.classList.contains( 'draad-tokens__input' ) ) return;
+
+		const select = tokenSelect( e.target );
+		if ( ! select ) return;
+		const menu = tokenWrap( select ).querySelector( '.draad-tokens__menu' );
+
+		switch ( e.key ) {
+			case 'ArrowDown':
+			case 'ArrowUp':
+				e.preventDefault();
+				if ( menu.hidden ) {
+					renderTokenMenu( select, e.target.value );
+				} else {
+					moveActiveOption( select, 'ArrowDown' === e.key ? 1 : -1 );
+				}
+				break;
+			case 'Enter': {
+				// Never let the picker submit the post.
+				e.preventDefault();
+				const active = menu.hidden ? null : menu.querySelector( '.draad-tokens__option.is-active' );
+				const value  = active ? active.dataset.value : e.target.value;
+				if ( value.trim() ) {
+					addToken( select, value );
+					e.target.value = '';
+					renderTokenMenu( select, '' );
+				}
+				break;
+			}
+			case 'Escape':
+				closeTokenMenu( select );
+				break;
+			case 'Backspace': {
+				if ( e.target.value ) break;
+				const current = tokenValues( select );
+				if ( current.length ) removeToken( select, current[ current.length - 1 ] );
+				break;
+			}
+		}
+	} );
+
+	repeater.addEventListener( 'focusin', ( e ) => {
+		if ( ! e.target.classList.contains( 'draad-tokens__input' ) ) return;
+		const select = tokenSelect( e.target );
+		if ( select ) renderTokenMenu( select, e.target.value );
+	} );
+
+	repeater.addEventListener( 'focusout', ( e ) => {
+		if ( ! e.target.classList.contains( 'draad-tokens__input' ) ) return;
+		const wrap = e.target.closest( '.draad-tokens' );
+		if ( wrap && wrap.contains( e.relatedTarget ) ) return;
+		closeTokenMenu( tokenSelect( e.target ) );
 	} );
 
 	// -------------------------------------------------------------------------
@@ -373,6 +745,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		if ( ! card ) return;
 		repeater.appendChild( card );
 		toggleTypeFields( card );
+		initTokenFields( card );
 
 		if ( tabList ) {
 			const tabItem = createTabItem( draadMapsAdmin.i18n.datasourcePrefix + number );
@@ -384,6 +757,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// Initialize type visibility and activate first tab for existing cards
 	repeater.querySelectorAll( '.draad-datasource-item' ).forEach( ( card ) => {
 		toggleTypeFields( card );
+		initTokenFields( card );
 	} );
 
 	if ( getTabItems().length > 0 ) {
@@ -396,8 +770,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	function serializeFeaturePopup( section ) {
 		const single = ( cls ) => section.querySelector( cls )?.value || '';
-		const multi  = ( cls ) =>
-			Array.from( section.querySelector( cls )?.selectedOptions || [] ).map( ( o ) => o.value );
+		const multi  = ( cls ) => tokenValues( section.querySelector( cls ) );
 
 		let available = [];
 		try {
@@ -405,6 +778,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		} catch ( e ) {
 			available = [];
 		}
+
+		const filters = tokenMeta( section.querySelector( '.draad-ds-filter-fields' ) );
 
 		return {
 			popup_image:        single( '.draad-ds-popup-image' ),
@@ -415,7 +790,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			popup_chips:        multi( '.draad-ds-popup-chips' ),
 			popup_action_field: single( '.draad-ds-popup-action-field' ),
 			popup_action_label: single( '.draad-ds-popup-action-label' ),
-			filter_fields:      multi( '.draad-ds-filter-fields' ),
+			filter_fields:      filters.fields,
+			filter_labels:      filters.labels,
+			filter_types:       filters.types,
+			filter_bool_labels: filters.boolLabels,
 			available_fields:   available,
 		};
 	}
@@ -431,7 +809,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			ds.marker_color = card.querySelector( '.draad-ds-marker-color' )?.value || '';
 
 			switch ( type ) {
-				case 'post_query':
+				case 'post_query': {
+					// Storage stays three comma strings; the token field builds them,
+					// so nothing has to stay index-aligned by hand any more.
+					const filters = tokenMeta( card.querySelector( '.draad-ds-filter-properties' ) );
+
 					ds.post_type         = card.querySelector( '.draad-ds-post-type' ).value;
 					ds.location_field    = card.querySelector( '.draad-ds-location-field' ).value;
 					ds.title_field       = card.querySelector( '.draad-ds-title-field' ).value;
@@ -441,9 +823,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					ds.address_field     = card.querySelector( '.draad-ds-address-field' ).value;
 					ds.website_field     = card.querySelector( '.draad-ds-website-field' ).value;
 					ds.terms_taxonomy    = card.querySelector( '.draad-ds-terms-taxonomy' ).value;
-					ds.filter_properties = card.querySelector( '.draad-ds-filter-properties' ).value;
-					ds.filter_labels     = card.querySelector( '.draad-ds-filter-labels' ).value;
+					ds.filter_properties = filters.fields.join( ',' );
+					ds.filter_labels     = filters.labels.join( ',' );
+					ds.filter_types      = filters.types.join( ',' );
+					ds.filter_bool_labels = filters.boolLabels.join( ',' );
 					break;
+				}
 				case 'geojson_url': {
 					const sec = card.querySelector( '.draad-ds-fields--geojson-url' );
 					ds.url    = sec.querySelector( '.draad-ds-url' ).value;

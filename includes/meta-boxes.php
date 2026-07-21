@@ -279,6 +279,8 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 	$terms_taxonomy    = $ds['terms_taxonomy'] ?? '';
 	$filter_properties = $ds['filter_properties'] ?? '';
 	$filter_labels     = $ds['filter_labels'] ?? '';
+	$filter_types      = $ds['filter_types'] ?? '';
+	$filter_bool_labels = $ds['filter_bool_labels'] ?? '';
 	$url               = $ds['url'] ?? '';
 	$typename          = $ds['typename'] ?? '';
 	$layers            = $ds['layers'] ?? '';
@@ -419,15 +421,17 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 				<tr>
 					<th><label><?php esc_html_e( 'Filterable fields', 'draad-maps' ); ?></label></th>
 					<td>
-						<input type="text" class="draad-ds-filter-properties regular-text" value="<?php echo esc_attr( $filter_properties ); ?>" placeholder="field_key1,field_key2" />
-						<p class="description"><?php esc_html_e( 'Custom field keys visitors can filter by. Separate multiple keys with commas.', 'draad-maps' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th><label><?php esc_html_e( 'Filter display names', 'draad-maps' ); ?></label></th>
-					<td>
-						<input type="text" class="draad-ds-filter-labels regular-text" value="<?php echo esc_attr( $filter_labels ); ?>" placeholder="Label 1,Label 2" />
-						<p class="description"><?php esc_html_e( 'Display names for the fields above, in the same order, separated by commas.', 'draad-maps' ); ?></p>
+						<?php
+						draad_maps_render_filter_select(
+							'draad-ds-filter-properties',
+							$filter_properties,
+							draad_maps_filter_field_options( $ds_post_type ),
+							$filter_labels,
+							$filter_types,
+							$filter_bool_labels
+						);
+						?>
+						<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Give each one a display name and a filter type (auto, bool, checkbox, range or dropdown). A bool field also takes the text shown behind its checkbox. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -589,7 +593,16 @@ function draad_maps_render_feature_popup_fields( array $ds = [] ) {
 	</tr>
 	<tr>
 		<th><label><?php esc_html_e( 'Filterable fields', 'draad-maps' ); ?></label></th>
-		<td><?php draad_maps_render_feature_field_select( 'draad-ds-filter-fields', $ds['filter_fields'] ?? [], $available, true ); ?>
+		<td><?php
+			draad_maps_render_filter_select(
+				'draad-ds-filter-fields',
+				$ds['filter_fields'] ?? [],
+				$available,
+				$ds['filter_labels'] ?? [],
+				$ds['filter_types'] ?? [],
+				$ds['filter_bool_labels'] ?? []
+			);
+			?>
 			<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p></td>
 	</tr>
 	<?php
@@ -603,24 +616,88 @@ function draad_maps_render_feature_popup_fields( array $ds = [] ) {
  * @param string[]        $available Available property keys.
  * @param bool            $multiple Allow multiple selection.
  */
-function draad_maps_render_feature_field_select( string $class, $selected, array $available, bool $multiple = false ) {
+function draad_maps_render_feature_field_select( string $class, $selected, array $available, bool $multiple = false, array $labels = [], array $types = [], array $bool_labels = [] ) {
 	$selected_arr = array_filter( array_map( 'strval', (array) $selected ), static fn( $v ) => '' !== $v );
 	$available    = array_map( 'strval', $available );
+
+	// Multi-value slots are enhanced into a token picker by admin.js; the select
+	// stays the source of truth, so this degrades to a plain multi-select.
+	$filter_meta = ! empty( $labels ) || ! empty( $types ) || str_contains( $class, 'filter' );
+
+	// Per-token display name / filter type ride along on the option.
+	$meta_attrs = static function ( string $key ) use ( $selected_arr, $labels, $types, $bool_labels, $filter_meta ): string {
+		if ( ! $filter_meta ) {
+			return '';
+		}
+		$i    = array_search( $key, array_values( $selected_arr ), true );
+		$out  = '';
+		if ( false !== $i && ! empty( $labels[ $i ] ) ) {
+			$out .= ' data-label="' . esc_attr( $labels[ $i ] ) . '"';
+		}
+		if ( false !== $i && ! empty( $types[ $i ] ) ) {
+			$out .= ' data-type="' . esc_attr( $types[ $i ] ) . '"';
+		}
+		if ( false !== $i && ! empty( $bool_labels[ $i ] ) ) {
+			$out .= ' data-bool-label="' . esc_attr( $bool_labels[ $i ] ) . '"';
+		}
+		return $out;
+	};
 	?>
-	<select class="<?php echo esc_attr( $class ); ?>"<?php echo $multiple ? ' multiple size="4" style="min-width:240px"' : ''; ?>>
+	<select class="<?php echo esc_attr( $class ); ?>"<?php echo $multiple ? ' multiple size="4" style="min-width:240px" data-tokens="1"' : ''; ?><?php echo $multiple && $filter_meta ? ' data-filter-meta="1"' : ''; ?>>
 		<?php if ( ! $multiple ) : ?>
 			<option value=""><?php esc_html_e( '— None —', 'draad-maps' ); ?></option>
 		<?php endif; ?>
 		<?php foreach ( $available as $key ) : ?>
-			<option value="<?php echo esc_attr( $key ); ?>" <?php echo in_array( $key, $selected_arr, true ) ? 'selected' : ''; ?>><?php echo esc_html( $key ); ?></option>
+			<option value="<?php echo esc_attr( $key ); ?>" <?php echo in_array( $key, $selected_arr, true ) ? 'selected' : ''; ?><?php echo $meta_attrs( $key ); ?>><?php echo esc_html( $key ); ?></option>
 		<?php endforeach; ?>
 		<?php foreach ( $selected_arr as $sv ) : ?>
 			<?php if ( ! in_array( $sv, $available, true ) ) : ?>
-				<option value="<?php echo esc_attr( $sv ); ?>" selected><?php echo esc_html( $sv ); ?></option>
+				<option value="<?php echo esc_attr( $sv ); ?>" selected<?php echo $meta_attrs( $sv ); ?>><?php echo esc_html( $sv ); ?></option>
 			<?php endif; ?>
 		<?php endforeach; ?>
 	</select>
 	<?php
+}
+
+/**
+ * Filterable-field picker: the same token widget everywhere, with a per-token
+ * display name and filter type instead of three index-aligned comma strings.
+ *
+ * @param string          $class     CSS class identifying the slot.
+ * @param string|string[] $selected  Selected field keys.
+ * @param string[]        $available Available field keys.
+ * @param string|string[] $labels    Display names, aligned to $selected.
+ * @param string|string[] $types     Filter types, aligned to $selected.
+ * @param string|string[] $bool_labels Checkbox texts for bool filters, aligned to $selected.
+ */
+function draad_maps_render_filter_select( string $class, $selected, array $available, $labels = [], $types = [], $bool_labels = [] ) {
+	draad_maps_render_feature_field_select(
+		$class,
+		draad_maps_normalize_keys( $selected ),
+		$available,
+		true,
+		draad_maps_csv_to_list( $labels ),
+		draad_maps_csv_to_list( $types ),
+		draad_maps_csv_to_list( $bool_labels )
+	);
+}
+
+/**
+ * Split a comma string into a list, leaving an existing array alone. Unlike
+ * draad_maps_normalize_keys() this keeps empty slots, so labels/types stay
+ * aligned with the field they belong to.
+ *
+ * @return string[]
+ */
+function draad_maps_csv_to_list( $value ): array {
+	if ( is_string( $value ) ) {
+		$value = '' === $value ? [] : explode( ',', $value );
+	}
+	if ( ! is_array( $value ) ) {
+		return [];
+	}
+
+	return array_map( static fn( $v ) => trim( (string) $v ), $value );
 }
 
 function draad_maps_render_meta_key_select( string $class, string $selected_value, array $meta_keys ) {
@@ -766,15 +843,8 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 				<tr>
 					<th><label><?php echo esc_js( __( 'Filterable fields', 'draad-maps' ) ); ?></label></th>
 					<td>
-						<input type="text" class="draad-ds-filter-properties regular-text" value="" placeholder="field_key1,field_key2" />
-						<p class="description"><?php echo esc_js( __( 'Custom field keys visitors can filter by. Separate multiple keys with commas.', 'draad-maps' ) ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th><label><?php echo esc_js( __( 'Filter display names', 'draad-maps' ) ); ?></label></th>
-					<td>
-						<input type="text" class="draad-ds-filter-labels regular-text" value="" placeholder="Label 1,Label 2" />
-						<p class="description"><?php echo esc_js( __( 'Display names for the fields above, in the same order, separated by commas.', 'draad-maps' ) ); ?></p>
+						<?php draad_maps_render_filter_select( 'draad-ds-filter-properties', [], [] ); ?>
+						<p class="description"><?php echo esc_js( __( 'Fields visitors can filter on. Give each one a display name and a filter type (auto, bool, checkbox, range or dropdown). A bool field also takes the text shown behind its checkbox. Requires "Show filters above the map" in Map settings.', 'draad-maps' ) ); ?></p>
 					</td>
 				</tr>
 			</table>
