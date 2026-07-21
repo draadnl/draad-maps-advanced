@@ -55,9 +55,16 @@ function draad_maps_render( int $map_id ): string {
 			}
 		}
 
+		// Checkbox text for bool filters. Translatable, with a filter as the
+		// escape hatch — not worth a map setting for a single word.
+		$bool_label = (string) apply_filters( 'draad_maps_filter_bool_label', __( 'Ja', 'draad-maps' ), $map_id );
+
 		$output .= '<dm-filter slot="toolbar" variant="dropdown"';
 		if ( ! empty( $filter_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $filter_source_ids ) ) . '"';
+		}
+		if ( '' !== $bool_label ) {
+			$output .= ' bool-label="' . esc_attr( $bool_label ) . '"';
 		}
 		$output .= '></dm-filter>';
 	}
@@ -65,16 +72,18 @@ function draad_maps_render( int $map_id ): string {
 	if ( $list_enabled ) {
 		$list_columns = (int) ( get_post_meta( $map_id, '_draad_map_list_columns', true ) ?: 3 );
 
-		// Collect IDs of listable sources (skip wms — raster tiles have no features).
-		$list_source_ids = [];
+		// Collect listable sources (skip wms — raster tiles have no features),
+		// keyed by the layer id so each one can carry its own card markup.
+		$list_sources = [];
 		foreach ( $datasources as $ds ) {
 			$type  = $ds['type'] ?? '';
 			$label = $ds['label'] ?? '';
 			if ( 'wms' === $type || ! $label || ! empty( $ds['display_only'] ) ) {
 				continue;
 			}
-			$list_source_ids[] = sanitize_title( $label );
+			$list_sources[ sanitize_title( $label ) ] = $ds;
 		}
+		$list_source_ids = array_keys( $list_sources );
 
 		$output .= '<dm-list slot="toolbar"';
 		if ( ! empty( $list_source_ids ) ) {
@@ -82,84 +91,69 @@ function draad_maps_render( int $map_id ): string {
 		}
 		$output .= ' columns="' . esc_attr( $list_columns ) . '">';
 
-		// Add card template for post_query datasources.
-		$has_post_query = false;
-		foreach ( $datasources as $ds ) {
-			if ( 'post_query' === ( $ds['type'] ?? '' ) ) {
-				$has_post_query = true;
-				break;
-			}
-		}
+		// One card template per source: a post_query marker exposes different
+		// properties than a GeoJSON feature, so a single shared template leaves
+		// every card of the other type blank.
+		foreach ( $list_sources as $source_id => $ds ) {
+			$card_type = $ds['type'] ?? '';
 
-		$card_tpl    = '';
-		$card_source = null;
-		$card_type   = '';
+			if ( 'post_query' === $card_type ) {
+				$list_action_text = $action_label !== ''
+					? $action_label
+					: __( 'Read more', 'draad-maps' );
 
-		if ( $has_post_query ) {
-			$card_type        = 'post_query';
-			$list_action_text = $action_label !== ''
-				? $action_label
-				: __( 'Read more', 'draad-maps' );
-
-			$card_tpl .= '<a data-href="properties.url">';
-			$card_tpl .= '<img data-src="properties.image" alt="" />';
-			$card_tpl .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
-			$card_tpl .= '<h3 data-field="properties.title"></h3>';
-			if ( ! $list_hide_address ) {
-				$card_tpl .= '<span class="address" data-field="properties.address"></span>';
-			}
-			$card_tpl .= '<p data-field="properties.description"></p>';
-			$card_tpl .= '<span class="chips" data-chips="properties.chips"></span>';
-			$card_tpl .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
-			$card_tpl .= '</a>';
-		} else {
-			// No post_query: use the first feature source's popup config so the
-			// list cards mirror the configurable GeoJSON/WFS infowindows.
-			foreach ( $datasources as $ds ) {
-				$ds_type = $ds['type'] ?? '';
-				if ( 'geojson_url' !== $ds_type && 'wfs' !== $ds_type ) {
-					continue;
+				$card_tpl  = '<a data-href="properties.url">';
+				$card_tpl .= '<img data-src="properties.image" alt="" />';
+				$card_tpl .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
+				$card_tpl .= '<h3 data-field="properties.title"></h3>';
+				if ( ! $list_hide_address ) {
+					$card_tpl .= '<span class="address" data-field="properties.address"></span>';
 				}
+				$card_tpl .= '<p data-field="properties.description"></p>';
+				$card_tpl .= '<span class="chips" data-chips="properties.chips"></span>';
+				$card_tpl .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
+				$card_tpl .= '</a>';
+			} else {
+				// Feature sources mirror their own configurable infowindow.
 				$ds['_map_action_label'] = $action_label;
 				$ds['_map_id']           = $map_id;
-				$feature_tpl             = draad_maps_build_feature_list_template( $ds, (bool) $list_hide_address );
-				if ( '' === $feature_tpl ) {
-					continue;
-				}
-				$card_tpl    = $feature_tpl;
-				$card_source = $ds;
-				$card_type   = $ds_type;
-				break;
+				$card_tpl                = draad_maps_build_feature_list_template( $ds, (bool) $list_hide_address );
 			}
-		}
 
-		/**
-		 * The `<dm-list>` card markup. Values are bound client-side, so a custom
-		 * card uses `data-field="properties.<key>"`, `data-src`, `data-chips` and
-		 * `data-href` — for post_query maps the available keys are whatever
-		 * `draad_maps_marker_properties` produced. Return '' to render no template
-		 * (the component falls back to its built-in card). Echoed raw — escape it
-		 * yourself.
-		 *
-		 * @param string     $card_tpl Default card markup.
-		 * @param array      $context  card_type (post_query|geojson_url|wfs), map_id,
-		 *                             datasource (the source the card was built from,
-		 *                             null for post_query), datasources, columns,
-		 *                             hide_address, action_label, source_ids.
-		 */
-		$card_tpl = (string) apply_filters( 'draad_maps_list_card_template', $card_tpl, [
-			'card_type'    => $card_type,
-			'map_id'       => $map_id,
-			'datasource'   => $card_source,
-			'datasources'  => $datasources,
-			'columns'      => $list_columns,
-			'hide_address' => (bool) $list_hide_address,
-			'action_label' => $action_label !== '' ? $action_label : __( 'Read more', 'draad-maps' ),
-			'source_ids'   => $list_source_ids,
-		] );
+			/**
+			 * The `<dm-list>` card markup for one data source. Values are bound
+			 * client-side, so a custom card uses `data-field="properties.<key>"`,
+			 * `data-src`, `data-chips` and `data-href` — for post_query sources the
+			 * available keys are whatever `draad_maps_marker_properties` produced,
+			 * for feature sources they are the raw feature property names. Return ''
+			 * to render no template for this source (the component falls back to its
+			 * built-in card). Echoed raw — escape it yourself.
+			 *
+			 * Runs once per listed source, so `$context['source_id']` says which one.
+			 *
+			 * @param string     $card_tpl Default card markup.
+			 * @param array      $context  card_type (post_query|geojson_url|wfs), source_id,
+			 *                             map_id, datasource (the source the card was built
+			 *                             from), datasources, columns, hide_address,
+			 *                             action_label, source_ids.
+			 */
+			$card_tpl = (string) apply_filters( 'draad_maps_list_card_template', $card_tpl, [
+				'card_type'    => $card_type,
+				'source_id'    => $source_id,
+				'map_id'       => $map_id,
+				'datasource'   => $ds,
+				'datasources'  => $datasources,
+				'columns'      => $list_columns,
+				'hide_address' => (bool) $list_hide_address,
+				'action_label' => $action_label !== '' ? $action_label : __( 'Read more', 'draad-maps' ),
+				'source_ids'   => $list_source_ids,
+			] );
 
-		if ( '' !== $card_tpl ) {
-			$output .= '<template>';
+			if ( '' === $card_tpl ) {
+				continue;
+			}
+
+			$output .= '<template for="' . esc_attr( $source_id ) . '">';
 			// Hide the action button on cards whose link has no href (i.e.,
 			// posts with no website and no post content). The bundle strips
 			// the href attribute when properties.url is empty. The external-link
