@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Filters to replace the generated cards and infowindows from outside the plugin: `draad_maps_marker_properties`, `draad_maps_post_infowindow_html`, `draad_maps_feature_infowindow_html` and `draad_maps_list_card_template`. Each receives a context array with everything already resolved (post, map ID, datasource config, marker ID, coordinates, permalink, image, title, description, eyebrow, address, terms, action URL/label, properties). See the README.
+- Content filters on post query datasources: a repeater of source / operator / value rows (custom fields and `taxonomy:…` sources) restricting which posts a layer pulls in, plus an AND/OR combiner. Values autocomplete from existing term slugs and meta values, but any custom value is accepted.
+
+### Changed
+- Bundled `@draadnl/map-components` 0.5.9: bool filters render as a single checkbox with a configurable label, checkboxes align to the first line of their label, and list card spacing ignores label elements.
 
 ## [1.4.4] - 2026-07-08
 

@@ -10,7 +10,7 @@
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
-		"@draadnl/map-components": "^0.5.8",
+		"@draadnl/map-components": "^0.5.9",
 		"@gemeente-denhaag/design-tokens": "^1.2.0"
 	},
 	"devDependencies": {

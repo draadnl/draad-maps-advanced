@@ -3,3 +3,5 @@ allowBuilds:
   "core-js-pure": true
   "core-js": true
   "unrs-resolver": true
+minimumReleaseAgeExclude:
+  - '@draadnl/map-components@0.5.9'
