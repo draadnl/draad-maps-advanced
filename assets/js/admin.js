@@ -665,3 +665,24 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		lookup( id, label );
 	}
 } );
+
+// Default view button group.
+document.addEventListener( 'DOMContentLoaded', () => {
+	const group  = document.querySelector( '.draad-default-view__buttons' );
+	const hidden = document.getElementById( 'draad_map_default_view' );
+
+	if ( ! group || ! hidden ) {
+		return;
+	}
+
+	group.addEventListener( 'click', ( e ) => {
+		const btn = e.target.closest( 'button[data-value]' );
+		if ( ! btn ) {
+			return;
+		}
+		hidden.value = btn.dataset.value;
+		group.querySelectorAll( 'button' ).forEach( ( b ) => {
+			b.classList.toggle( 'button-primary', b === btn );
+		} );
+	} );
+} );

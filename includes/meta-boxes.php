@@ -41,6 +41,7 @@ function draad_maps_render_settings_box( $post ) {
 	$list_columns        = get_post_meta( $post->ID, '_draad_map_list_columns', true );
 	$list_columns        = $list_columns !== '' ? (int) $list_columns : 2;
 	$list_hide_address   = get_post_meta( $post->ID, '_draad_map_list_hide_address', true );
+	$default_view        = get_post_meta( $post->ID, '_draad_map_default_view', true ) ?: 'map';
 	$action_label        = get_post_meta( $post->ID, '_draad_map_action_label', true );
 	?>
 	<table class="form-table">
@@ -186,6 +187,17 @@ function draad_maps_render_settings_box( $post ) {
 					<?php esc_html_e( 'Hide address in list cards', 'draad-maps' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Hides the address field in the list view, even when filled in.', 'draad-maps' ); ?></p>
+				<?php // ponytail: shown/hidden purely by CSS :has() on the checkbox above — no JS. ?>
+				<div class="draad-default-view">
+					<br />
+					<span class="draad-default-view__label"><?php esc_html_e( 'Default view', 'draad-maps' ); ?></span>
+					<input type="hidden" id="draad_map_default_view" name="draad_map_default_view" value="<?php echo esc_attr( $default_view ); ?>" />
+					<span class="button-group draad-default-view__buttons">
+						<button type="button" class="button<?php echo 'list' !== $default_view ? ' button-primary' : ''; ?>" data-value="map"><?php esc_html_e( 'Map', 'draad-maps' ); ?></button>
+						<button type="button" class="button<?php echo 'list' === $default_view ? ' button-primary' : ''; ?>" data-value="list"><?php esc_html_e( 'List', 'draad-maps' ); ?></button>
+					</span>
+					<p class="description"><?php esc_html_e( 'Which view visitors see first.', 'draad-maps' ); ?></p>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -858,6 +870,7 @@ function draad_maps_save_meta( $post_id, $post ) {
 	update_post_meta( $post_id, '_draad_map_list_enabled', isset( $_POST['draad_map_list_enabled'] ) ? '1' : '' );
 	update_post_meta( $post_id, '_draad_map_list_columns', absint( $_POST['draad_map_list_columns'] ?? 2 ) );
 	update_post_meta( $post_id, '_draad_map_list_hide_address', isset( $_POST['draad_map_list_hide_address'] ) ? '1' : '' );
+	update_post_meta( $post_id, '_draad_map_default_view', 'list' === ( $_POST['draad_map_default_view'] ?? '' ) ? 'list' : 'map' );
 	update_post_meta( $post_id, '_draad_map_action_label', sanitize_text_field( wp_unslash( $_POST['draad_map_action_label'] ?? '' ) ) );
 
 	if ( isset( $_POST['draad_map_datasources'] ) ) {

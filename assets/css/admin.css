@@ -181,3 +181,17 @@
 .draad-ds-panel.is-active {
 	display: block;
 }
+
+/* ---- Default view ---- */
+.draad-default-view {
+	display: none;
+}
+
+td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
+	display: block;
+}
+
+.draad-default-view__label {
+	display: block;
+	margin-bottom: 4px;
+}

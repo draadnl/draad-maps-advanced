@@ -59,6 +59,11 @@ function draad_maps_register_meta_fields() {
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		],
+		'_draad_map_default_view' => [
+			'type'              => 'string',
+			'default'           => 'map',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
 		'_draad_map_list_hide_address' => [
 			'type'              => 'string',
 			'default'           => '',

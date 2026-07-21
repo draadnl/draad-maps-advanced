@@ -331,3 +331,12 @@ msgstr "Locaties"
 msgid "Read more"
 msgstr "Lees meer"
 
+
+msgid "Default view"
+msgstr "Standaardweergave"
+
+msgid "List"
+msgstr "Lijst"
+
+msgid "Which view visitors see first."
+msgstr "Welke weergave bezoekers als eerste zien."
