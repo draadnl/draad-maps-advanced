@@ -64,6 +64,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			card.querySelector( '.draad-ds-website-field' ),
 		];
 		const filterSel = card.querySelector( '.draad-ds-filter-properties' );
+		// Query-filter sources keep the "taxonomy:" prefix — they become a
+		// tax_query, unlike the frontend filter properties.
+		const querySources = ( keys ) => keys.filter( ( k ) => ! POST_FIELDS.includes( k ) );
+		const qfSelects    = () => card.querySelectorAll( '.draad-qf-source' );
 
 		if ( ! preserveValues ) {
 			selects.forEach( ( sel ) => {
@@ -72,11 +76,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			if ( filterSel ) {
 				Array.from( filterSel.options ).forEach( ( o ) => { o.selected = false; } );
 			}
+			qfSelects().forEach( ( sel ) => { sel.value = ''; } );
 		}
 
 		if ( ! postType ) {
 			selects.forEach( ( sel ) => repopulateFieldSelect( sel, [] ) );
 			repopulateFieldSelect( filterSel, [] );
+			qfSelects().forEach( ( sel ) => repopulateFieldSelect( sel, [] ) );
 			return;
 		}
 
@@ -92,6 +98,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				if ( ! data.success ) return;
 				selects.forEach( ( sel ) => repopulateFieldSelect( sel, data.data ) );
 				repopulateFieldSelect( filterSel, filterKeys( data.data ) );
+				qfSelects().forEach( ( sel ) => repopulateFieldSelect( sel, querySources( data.data ) ) );
 			} );
 	}
 
@@ -553,6 +560,83 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 	} );
 
+	// Value autocomplete: existing term slugs / meta values as <datalist>
+	// suggestions. The input stays free text — custom values are allowed.
+	let qfListId = 0;
+	const qfValues = new Map();
+
+	function loadQueryFilterValues( input ) {
+		const row      = input.closest( '.draad-qf-row' );
+		const card     = input.closest( '.draad-datasource-item' );
+		const source   = row.querySelector( '.draad-qf-source' ).value;
+		const postType = card.querySelector( '.draad-ds-post-type' ).value;
+		if ( ! source || ! postType ) return;
+
+		let list = row.querySelector( 'datalist' );
+		if ( ! list ) {
+			list    = document.createElement( 'datalist' );
+			list.id = 'draad-qf-values-' + ( ++qfListId );
+			row.appendChild( list );
+			input.setAttribute( 'list', list.id );
+		}
+		if ( list.dataset.source === source ) return;
+		list.dataset.source = source;
+
+		const fill = ( values ) => {
+			list.innerHTML = '';
+			values.forEach( ( v ) => {
+				const opt = document.createElement( 'option' );
+				opt.value = v;
+				list.appendChild( opt );
+			} );
+		};
+
+		const key = postType + '|' + source;
+		if ( qfValues.has( key ) ) {
+			fill( qfValues.get( key ) );
+			return;
+		}
+
+		const params = new URLSearchParams( {
+			action:    'draad_maps_get_source_values',
+			nonce:     draadMapsAdmin.nonce,
+			post_type: postType,
+			source:    source,
+		} );
+
+		fetch( draadMapsAdmin.ajaxUrl + '?' + params.toString() )
+			.then( ( r ) => r.json() )
+			.then( ( data ) => {
+				if ( ! data.success ) return;
+				qfValues.set( key, data.data );
+				fill( data.data );
+			} );
+	}
+
+	repeater.addEventListener( 'focusin', ( e ) => {
+		if ( e.target.classList.contains( 'draad-qf-value' ) ) loadQueryFilterValues( e.target );
+	} );
+
+	repeater.addEventListener( 'click', ( e ) => {
+		if ( e.target.classList.contains( 'draad-qf-add' ) ) {
+			const rows = e.target.previousElementSibling;
+			const tpl  = rows.querySelector( '.draad-qf-row--template' );
+			const row  = tpl.cloneNode( true );
+			row.classList.remove( 'draad-qf-row--template' );
+			row.style.display = '';
+			// Drop the cloned datalist — ids must stay unique.
+			const stale = row.querySelector( 'datalist' );
+			if ( stale ) stale.remove();
+			row.querySelector( '.draad-qf-value' ).removeAttribute( 'list' );
+			rows.insertBefore( row, tpl );
+			return;
+		}
+
+		if ( e.target.classList.contains( 'draad-qf-remove' ) ) {
+			e.target.closest( '.draad-qf-row' ).remove();
+		}
+	} );
+
 	repeater.addEventListener( 'click', ( e ) => {
 		if ( e.target.classList.contains( 'draad-ds-fetch-properties' ) ) {
 			const card = e.target.closest( '.draad-datasource-item' );
@@ -798,6 +882,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		};
 	}
 
+	// Repeater rows, minus the hidden template row and any row without a source.
+	function serializeQueryFilters( card ) {
+		const rows = card.querySelectorAll( '.draad-ds-fields--post-query .draad-qf-row:not(.draad-qf-row--template)' );
+
+		return Array.from( rows )
+			.map( ( row ) => ( {
+				source:   row.querySelector( '.draad-qf-source' ).value,
+				operator: row.querySelector( '.draad-qf-operator' ).value,
+				value:    row.querySelector( '.draad-qf-value' ).value,
+			} ) )
+			.filter( ( f ) => f.source );
+	}
+
 	function serializeDatasources() {
 		const datasources = [];
 
@@ -827,6 +924,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					ds.filter_labels     = filters.labels.join( ',' );
 					ds.filter_types      = filters.types.join( ',' );
 					ds.filter_bool_labels = filters.boolLabels.join( ',' );
+					ds.query_filters  = serializeQueryFilters( card );
+					ds.query_relation = card.querySelector( '.draad-ds-query-relation' )?.value || 'AND';
 					break;
 				}
 				case 'geojson_url': {

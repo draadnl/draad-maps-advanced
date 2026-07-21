@@ -128,6 +128,8 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				$entry['filter_labels']     = sanitize_text_field( $ds['filter_labels'] ?? '' );
 				$entry['filter_types']      = sanitize_text_field( $ds['filter_types'] ?? '' );
 				$entry['filter_bool_labels'] = sanitize_text_field( $ds['filter_bool_labels'] ?? '' );
+				$entry['query_filters']      = draad_maps_sanitize_query_filters( $ds['query_filters'] ?? [] );
+				$entry['query_relation']     = 'OR' === strtoupper( (string) ( $ds['query_relation'] ?? '' ) ) ? 'OR' : 'AND';
 				break;
 
 			case 'geojson_url':
@@ -151,6 +153,68 @@ function draad_maps_sanitize_datasources( string $json ): string {
 	}
 
 	return wp_json_encode( $sanitized );
+}
+
+/**
+ * Operators accepted by the query-filter repeater. Mirrors the meta_query
+ * compare values; taxonomy sources map onto the tax_query subset in
+ * draad_maps_build_query_filters().
+ *
+ * @return array<string,string> operator => label
+ */
+function draad_maps_query_filter_operators(): array {
+	return [
+		'='          => __( 'is', 'draad-maps' ),
+		'!='         => __( 'is not', 'draad-maps' ),
+		'LIKE'       => __( 'contains', 'draad-maps' ),
+		'NOT LIKE'   => __( 'does not contain', 'draad-maps' ),
+		'>'          => __( 'greater than', 'draad-maps' ),
+		'>='         => __( 'greater than or equal', 'draad-maps' ),
+		'<'          => __( 'less than', 'draad-maps' ),
+		'<='         => __( 'less than or equal', 'draad-maps' ),
+		'IN'         => __( 'is one of (comma separated)', 'draad-maps' ),
+		'NOT IN'     => __( 'is none of (comma separated)', 'draad-maps' ),
+		'EXISTS'     => __( 'has any value', 'draad-maps' ),
+		'NOT EXISTS' => __( 'has no value', 'draad-maps' ),
+	];
+}
+
+/**
+ * Sanitize the query-filter repeater rows: [ source, operator, value ].
+ *
+ * @return array<int,array<string,string>>
+ */
+function draad_maps_sanitize_query_filters( $filters ): array {
+	if ( ! is_array( $filters ) ) {
+		return [];
+	}
+
+	$operators = draad_maps_query_filter_operators();
+	$out       = [];
+
+	foreach ( $filters as $filter ) {
+		if ( ! is_array( $filter ) ) {
+			continue;
+		}
+
+		// "taxonomy:slug" keeps its prefix; sanitize_key would eat the colon.
+		$source = trim( sanitize_text_field( (string) ( $filter['source'] ?? '' ) ) );
+		if ( '' === $source ) {
+			continue;
+		}
+
+		$operator = strtoupper( trim( (string) ( $filter['operator'] ?? '=' ) ) );
+
+		$out[] = [
+			'source'   => $source,
+			'operator' => isset( $operators[ $operator ] ) ? $operator : '=',
+			// ponytail: no strip_tags — sanitize_text_field eats values like "<50"
+			// or "a < b". Escaped at render, prepared by WP_Query on use.
+			'value'    => trim( str_replace( [ "\r", "\n", "\0" ], '', (string) ( $filter['value'] ?? '' ) ) ),
+		];
+	}
+
+	return $out;
 }
 
 /**

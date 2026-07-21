@@ -391,3 +391,23 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 .draad-tokens__meta tr:not(.is-bool) .draad-tokens__bool-label {
 	visibility: hidden;
 }
+
+/* Query-filter repeater: source / operator / value on one line. */
+.draad-qf-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.draad-qf-row .draad-qf-value {
+	flex: 1;
+	min-width: 120px;
+}
+
+.draad-qf-remove {
+	color: #b32d2e;
+	font-size: 18px;
+	line-height: 1;
+	text-decoration: none;
+}

@@ -46,6 +46,57 @@ function draad_maps_ajax_get_taxonomies() {
 	wp_send_json_success( $result );
 }
 
+add_action( 'wp_ajax_draad_maps_get_source_values', 'draad_maps_ajax_get_source_values' );
+
+/**
+ * Existing values for one query-filter source: term slugs for "taxonomy:<slug>",
+ * distinct meta values otherwise. Suggestions only — the field stays free text.
+ */
+function draad_maps_ajax_get_source_values() {
+	check_ajax_referer( 'draad_maps_admin', 'nonce' );
+
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Unauthorized', 403 );
+	}
+
+	global $wpdb;
+
+	$post_type = sanitize_key( $_GET['post_type'] ?? '' );
+	$source    = trim( sanitize_text_field( wp_unslash( $_GET['source'] ?? '' ) ) );
+
+	if ( ! $post_type || ! post_type_exists( $post_type ) || '' === $source ) {
+		wp_send_json_error( 'Invalid request' );
+	}
+
+	if ( 0 === strpos( $source, 'taxonomy:' ) || taxonomy_exists( $source ) ) {
+		$taxonomy = 0 === strpos( $source, 'taxonomy:' ) ? substr( $source, 9 ) : $source;
+		$terms    = taxonomy_exists( $taxonomy )
+			? get_terms( [ 'taxonomy' => $taxonomy, 'fields' => 'slugs', 'hide_empty' => false, 'number' => 200 ] )
+			: [];
+
+		wp_send_json_success( is_wp_error( $terms ) ? [] : array_values( $terms ) );
+	}
+
+	$values = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT DISTINCT pm.meta_value
+			 FROM {$wpdb->postmeta} pm
+			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			 WHERE p.post_type = %s
+			   AND p.post_status = 'publish'
+			   AND pm.meta_key = %s
+			   AND pm.meta_value != ''
+			   AND CHAR_LENGTH( pm.meta_value ) <= 100
+			 ORDER BY pm.meta_value ASC
+			 LIMIT 200",
+			$post_type,
+			$source
+		)
+	);
+
+	wp_send_json_success( array_values( array_unique( $values ?: [] ) ) );
+}
+
 add_action( 'wp_ajax_draad_maps_fetch_geojson_properties', 'draad_maps_ajax_fetch_geojson_properties' );
 
 function draad_maps_ajax_fetch_geojson_properties() {
@@ -148,6 +199,24 @@ function draad_maps_filter_field_options( string $post_type ): array {
 	}
 
 	return array_values( array_unique( $out ) );
+}
+
+/**
+ * Sources selectable in the query-filter repeater: meta keys plus
+ * "taxonomy:<slug>" entries. Built-in post fields are dropped — the filters
+ * become a meta_query / tax_query, not a post-field search.
+ *
+ * @return string[]
+ */
+function draad_maps_query_filter_sources( string $post_type ): array {
+	if ( '' === $post_type ) {
+		return [];
+	}
+
+	$built_in = [ 'post_title', 'post_excerpt', 'post_content', 'featured_image' ];
+	$keys     = array_diff( draad_maps_get_meta_keys_for_post_type( $post_type ), $built_in );
+
+	return array_values( array_unique( $keys ) );
 }
 
 function draad_maps_get_meta_keys_for_post_type( string $post_type ): array {

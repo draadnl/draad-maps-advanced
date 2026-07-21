@@ -31,6 +31,7 @@ function admin_url( $p ) { return 'https://example.test/wp-admin/' . $p; }
 function apply_filters( $tag, $value ) { return $value; }
 function add_action() {}
 function selected() {}
+function taxonomy_exists( $t ) { return in_array( $t, [ 'category', 'post_tag' ], true ); }
 function checked() {}
 
 require_once __DIR__ . '/../includes/datasource.php';
@@ -120,6 +121,49 @@ check( 'comma storage untouched', $pq['filter_properties'], 'fun_sport,sport' );
 check( 'labels with punctuation survive', $pq['filter_labels'], 'Is dit een leuke sport?,Sporttak' );
 check( 'types survive', $pq['filter_types'], 'bool,auto' );
 check( 'bool labels survive as a comma string', $pq['filter_bool_labels'], 'Nu meedenken,' );
+
+// ---- Query filters: repeater rows → meta_query / tax_query clauses ----------
+
+echo "\nquery filters\n";
+
+$qf = json_decode( draad_maps_sanitize_datasources( wp_json_encode( [ [
+	'type'           => 'post_query',
+	'post_type'      => 'sportaccomodation',
+	'location_field' => 'locatie',
+	'query_relation' => 'or',
+	'query_filters'  => [
+		[ 'source' => 'bouwjaar', 'operator' => '>=', 'value' => '1990' ],
+		[ 'source' => 'taxonomy:sporttak', 'operator' => '!=', 'value' => 'voetbal,hockey' ],
+		[ 'source' => 'keurmerk', 'operator' => 'DROP TABLE', 'value' => 'x' ],
+		[ 'source' => '', 'operator' => '=', 'value' => 'ignored' ],
+	],
+] ] ) ), true )[0];
+
+check( 'empty source row dropped', count( $qf['query_filters'] ), 3 );
+check( 'unknown operator falls back to =', $qf['query_filters'][2]['operator'], '=' );
+check( 'relation normalized to upper case', $qf['query_relation'], 'OR' );
+
+// Custom values must survive: sanitize_text_field's strip_tags ate "<50".
+$custom = json_decode( draad_maps_sanitize_datasources( wp_json_encode( [ [
+	'type'           => 'post_query',
+	'post_type'      => 'sportaccomodation',
+	'location_field' => 'locatie',
+	'query_filters'  => [ [ 'source' => 'bouwjaar', 'operator' => '=', 'value' => ' <50 ' ] ],
+] ] ) ), true )[0];
+
+check( 'custom value with < survives', $custom['query_filters'][0]['value'], '<50' );
+
+[ $meta_clauses, $tax_clauses ] = draad_maps_build_query_filters( $qf['query_filters'] );
+
+check( 'meta clause count', count( $meta_clauses ), 2 );
+check( 'numeric compare typed NUMERIC', $meta_clauses[0], [ 'key' => 'bouwjaar', 'compare' => '>=', 'value' => '1990', 'type' => 'NUMERIC' ] );
+check( 'taxonomy source becomes a tax clause', $tax_clauses[0], [ 'taxonomy' => 'sporttak', 'operator' => 'NOT IN', 'field' => 'slug', 'terms' => [ 'voetbal', 'hockey' ] ] );
+
+[ , $tax_ids ] = draad_maps_build_query_filters( [ [ 'source' => 'taxonomy:wijk', 'operator' => 'IN', 'value' => '12, 34' ] ] );
+check( 'numeric terms query by term_id', $tax_ids[0]['terms'], [ 12, 34 ] );
+
+[ $exists ] = draad_maps_build_query_filters( [ [ 'source' => 'keurmerk', 'operator' => 'NOT EXISTS', 'value' => 'x' ] ] );
+check( 'EXISTS carries no value', $exists[0], [ 'key' => 'keurmerk', 'compare' => 'NOT EXISTS' ] );
 
 // ---- The comma/array helper the token renderer feeds on ---------------------
 

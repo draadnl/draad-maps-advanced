@@ -349,6 +349,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 						<p class="description"><?php esc_html_e( 'Which WordPress content type contains your locations.', 'draad-maps' ); ?></p>
 					</td>
 				</tr>
+				<?php draad_maps_render_query_filters( $ds, draad_maps_query_filter_sources( $ds_post_type ) ); ?>
 				<tr>
 					<th><label><?php esc_html_e( 'Coordinates field', 'draad-maps' ); ?></label></th>
 					<td>
@@ -716,6 +717,61 @@ function draad_maps_render_meta_key_select( string $class, string $selected_valu
 	<?php
 }
 
+/**
+ * Query-filter repeater: pick a meta key or taxonomy, an operator and a value.
+ * The last row is a hidden template the JS clones — keeping it inside the card
+ * means the source <select> gets repopulated with the rest on post-type change.
+ */
+function draad_maps_render_query_filters( array $ds, array $sources ) {
+	$rows      = $ds['query_filters'] ?? [];
+	$relation  = 'OR' === strtoupper( (string) ( $ds['query_relation'] ?? '' ) ) ? 'OR' : 'AND';
+	$operators = draad_maps_query_filter_operators();
+	?>
+	<tr>
+		<th><label><?php esc_html_e( 'Content filters', 'draad-maps' ); ?></label></th>
+		<td>
+			<div class="draad-qf-rows">
+				<?php foreach ( array_merge( $rows, [ null ] ) as $row ) : ?>
+					<?php
+					$is_template = null === $row;
+					$row         = $row ?? [];
+					?>
+					<div class="draad-qf-row<?php echo $is_template ? ' draad-qf-row--template' : ''; ?>"<?php echo $is_template ? ' style="display:none"' : ''; ?>>
+						<select class="draad-qf-source">
+							<option value=""><?php esc_html_e( '— Select —', 'draad-maps' ); ?></option>
+							<?php foreach ( $sources as $key ) : ?>
+								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $row['source'] ?? '', $key ); ?>><?php echo esc_html( $key ); ?></option>
+							<?php endforeach; ?>
+							<?php if ( ! empty( $row['source'] ) && ! in_array( $row['source'], $sources, true ) ) : ?>
+								<option value="<?php echo esc_attr( $row['source'] ); ?>" selected><?php echo esc_html( $row['source'] ); ?></option>
+							<?php endif; ?>
+						</select>
+						<select class="draad-qf-operator">
+							<?php foreach ( $operators as $value => $label ) : ?>
+								<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $row['operator'] ?? '=', $value ); ?>><?php echo esc_html( $label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<input type="text" class="draad-qf-value regular-text" value="<?php echo esc_attr( $row['value'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'value', 'draad-maps' ); ?>" />
+						<button type="button" class="button-link draad-qf-remove" aria-label="<?php esc_attr_e( 'Remove filter', 'draad-maps' ); ?>">&times;</button>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<button type="button" class="button draad-qf-add"><?php esc_html_e( '+ Add filter', 'draad-maps' ); ?></button>
+			<p class="description"><?php esc_html_e( 'Only show posts matching these conditions. Sources are custom fields and taxonomies ("taxonomy:…"); for taxonomies the value is a term slug or ID. The value field suggests existing values — anything else you type is kept.', 'draad-maps' ); ?></p>
+		</td>
+	</tr>
+	<tr>
+		<th><label><?php esc_html_e( 'Combine filters with', 'draad-maps' ); ?></label></th>
+		<td>
+			<select class="draad-ds-query-relation">
+				<option value="AND" <?php selected( $relation, 'AND' ); ?>><?php esc_html_e( 'AND — match all filters', 'draad-maps' ); ?></option>
+				<option value="OR" <?php selected( $relation, 'OR' ); ?>><?php esc_html_e( 'OR — match any filter', 'draad-maps' ); ?></option>
+			</select>
+		</td>
+	</tr>
+	<?php
+}
+
 function draad_maps_render_marker_color_select( string $selected ) {
 	$selected = '' !== $selected ? $selected : 'green';
 	?>
@@ -784,6 +840,7 @@ function draad_maps_render_datasource_template( array $public_post_types ) {
 						<p class="description"><?php echo esc_js( __( 'Which WordPress content type contains your locations.', 'draad-maps' ) ); ?></p>
 					</td>
 				</tr>
+				<?php draad_maps_render_query_filters( [], [] ); ?>
 				<tr>
 					<th><label><?php echo esc_js( __( 'Coordinates field', 'draad-maps' ) ); ?></label></th>
 					<td>

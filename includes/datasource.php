@@ -106,6 +106,118 @@ function draad_maps_render_datasource( string $type, array $config ): string {
 	}
 }
 
+/**
+ * Turn the repeater rows into meta_query / tax_query clauses.
+ *
+ * @param array<int,array<string,string>> $filters Sanitized repeater rows.
+ * @return array{0:array<int,array>,1:array<int,array>} [ meta clauses, tax clauses ]
+ */
+function draad_maps_build_query_filters( array $filters ): array {
+	$meta = [];
+	$tax  = [];
+
+	foreach ( $filters as $filter ) {
+		$source   = $filter['source'];
+		$operator = $filter['operator'];
+		$value    = $filter['value'];
+		$list     = array_filter( array_map( 'trim', explode( ',', $value ) ), 'strlen' );
+
+		$taxonomy = str_starts_with( $source, 'taxonomy:' ) ? substr( $source, 9 ) : '';
+		if ( '' === $taxonomy && taxonomy_exists( $source ) ) {
+			$taxonomy = $source;
+		}
+
+		if ( $taxonomy ) {
+			// tax_query only speaks IN / NOT IN / EXISTS / NOT EXISTS.
+			$tax_operator = match ( $operator ) {
+				'!=', 'NOT IN', 'NOT LIKE' => 'NOT IN',
+				'EXISTS'                   => 'EXISTS',
+				'NOT EXISTS'               => 'NOT EXISTS',
+				default                    => 'IN',
+			};
+
+			$clause = [
+				'taxonomy' => $taxonomy,
+				'operator' => $tax_operator,
+			];
+
+			if ( 'EXISTS' !== $tax_operator && 'NOT EXISTS' !== $tax_operator ) {
+				if ( empty( $list ) ) {
+					continue;
+				}
+				// Terms may be given as slugs, names or IDs — pick the field per value set.
+				$clause['field'] = ctype_digit( implode( '', $list ) ) ? 'term_id' : 'slug';
+				$clause['terms'] = 'term_id' === $clause['field'] ? array_map( 'intval', $list ) : $list;
+			}
+
+			$tax[] = $clause;
+			continue;
+		}
+
+		$clause = [
+			'key'     => $source,
+			'compare' => $operator,
+		];
+
+		if ( 'EXISTS' !== $operator && 'NOT EXISTS' !== $operator ) {
+			$clause['value'] = in_array( $operator, [ 'IN', 'NOT IN' ], true ) ? $list : $value;
+			if ( is_numeric( $value ) && in_array( $operator, [ '>', '>=', '<', '<=' ], true ) ) {
+				$clause['type'] = 'NUMERIC';
+			}
+		}
+
+		$meta[] = $clause;
+	}
+
+	return [ $meta, $tax ];
+}
+
+/**
+ * Run the layer query with the configured filters applied.
+ *
+ * WP_Query always ANDs meta_query with tax_query, so an OR across both groups
+ * is resolved by unioning the post IDs of two queries.
+ *
+ * @param array<int,array<string,string>> $filters  Sanitized repeater rows.
+ * @param string                          $relation AND|OR.
+ * @return WP_Post[]
+ */
+function draad_maps_query_posts( array $args, array $filters, string $relation ): array {
+	[ $meta, $tax ] = draad_maps_build_query_filters( $filters );
+
+	if ( empty( $meta ) && empty( $tax ) ) {
+		return get_posts( $args );
+	}
+
+	$with_meta = static function ( array $a ) use ( $meta, $relation ): array {
+		if ( $meta ) {
+			$a['meta_query'] = [ 'relation' => 'AND', $a['meta_query'][0], array_merge( [ 'relation' => $relation ], $meta ) ];
+		}
+		return $a;
+	};
+	$with_tax  = static function ( array $a ) use ( $tax, $relation ): array {
+		if ( $tax ) {
+			$a['tax_query'] = array_merge( [ 'relation' => $relation ], $tax );
+		}
+		return $a;
+	};
+
+	if ( 'OR' === $relation && $meta && $tax ) {
+		$ids = array_unique( array_merge(
+			get_posts( $with_meta( $args ) + [ 'fields' => 'ids' ] ),
+			get_posts( $with_tax( $args ) + [ 'fields' => 'ids' ] )
+		) );
+
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		return get_posts( $args + [ 'post__in' => $ids ] );
+	}
+
+	return get_posts( $with_tax( $with_meta( $args ) ) );
+}
+
 function draad_maps_render_post_query( array $config ): string {
 	$post_type         = $config['post_type'] ?? '';
 	$location_field    = $config['location_field'] ?? '';
@@ -130,7 +242,7 @@ function draad_maps_render_post_query( array $config ): string {
 
 	$has_infowindow = ( $title_field || $description_field || $image_field || $eyebrow_field || $address_field );
 
-	$posts = get_posts( [
+	$args = [
 		'post_type'      => sanitize_text_field( $post_type ),
 		'posts_per_page' => -1,
 		'post_status'    => 'publish',
@@ -141,7 +253,13 @@ function draad_maps_render_post_query( array $config ): string {
 				'compare' => '!=',
 			],
 		],
-	] );
+	];
+
+	$posts = draad_maps_query_posts(
+		$args,
+		draad_maps_sanitize_query_filters( $config['query_filters'] ?? [] ),
+		'OR' === strtoupper( (string) ( $config['query_relation'] ?? 'AND' ) ) ? 'OR' : 'AND'
+	);
 
 	if ( empty( $posts ) ) {
 		return '';
