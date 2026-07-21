@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-07-21
+
+### Added
+- Filters to replace the generated cards and infowindows from outside the plugin: `draad_maps_marker_properties`, `draad_maps_post_infowindow_html`, `draad_maps_feature_infowindow_html` and `draad_maps_list_card_template`. Each receives a context array with everything already resolved (post, map ID, datasource config, marker ID, coordinates, permalink, image, title, description, eyebrow, address, terms, action URL/label, properties). See the README.
+
 ## [1.4.4] - 2026-07-08
 
 ### Added

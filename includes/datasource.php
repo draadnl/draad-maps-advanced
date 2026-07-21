@@ -290,7 +290,41 @@ function draad_maps_render_post_query( array $config ): string {
 				}
 			}
 		}
+		/**
+		 * Marker properties, as exposed to the list view and card templates via
+		 * `dm-marker[properties]`. Add keys here to bind them in a custom card
+		 * template with `data-field="properties.<key>"`.
+		 *
+		 * @param array   $props  Property key => value.
+		 * @param WP_Post $post   The post the marker was built from.
+		 * @param array   $config Datasource config (plus `_map_id`, `_map_action_label`).
+		 */
+		$props = (array) apply_filters( 'draad_maps_marker_properties', $props, $post, $config );
+
 		$props_attr = ! empty( $props ) ? ' properties="' . esc_attr( wp_json_encode( $props ) ) . '"' : '';
+
+		// Everything resolved for this post, handed to the infowindow filter so a
+		// custom card can be built without re-querying meta/terms.
+		$context = [
+			'post'         => $post,
+			'post_id'      => $post->ID,
+			'map_id'       => (int) ( $config['_map_id'] ?? 0 ),
+			'config'       => $config,
+			'source_type'  => 'post_query',
+			'marker_id'    => $marker_id,
+			'center'       => $center,
+			'permalink'    => $permalink,
+			'image_url'    => $img_url,
+			'title'        => $title_val,
+			'description'  => $desc_val,
+			'eyebrow'      => $eyebrow_val,
+			'address'      => $address_val,
+			'terms'        => $term_names,
+			'taxonomy'     => $terms_taxonomy,
+			'action_url'   => $action_url,
+			'action_label' => $action_text,
+			'properties'   => $props,
+		];
 
 		if ( $has_infowindow ) {
 			$markers_html .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $marker_icon_attrs . $props_attr . '></dm-marker>';
@@ -330,11 +364,25 @@ function draad_maps_render_post_query( array $config ): string {
 			}
 
 			$infowindow .= '</dm-infowindow>';
-			$infowindows .= $infowindow;
 		} else {
 			$url_attr      = $permalink ? ' data-url="' . esc_url( $permalink ) . '"' : '';
-			$markers_html .= '<dm-marker center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $marker_icon_attrs . $url_attr . $props_attr . '></dm-marker>';
+			$markers_html .= '<dm-marker id="' . esc_attr( $marker_id ) . '" center="' . esc_attr( $center ) . '" label="' . esc_attr( $post->post_title ) . '"' . $marker_icon_attrs . $url_attr . $props_attr . '></dm-marker>';
+			$infowindow    = '';
 		}
+
+		/**
+		 * The complete `<dm-infowindow>` markup for one post marker. Return your
+		 * own element (bind it with `for="{$context['marker_id']}"`) to replace the
+		 * card, '' to drop it, or the default to leave it alone. Output is echoed
+		 * raw — escape it yourself.
+		 *
+		 * @param string $infowindow Default markup ('' when no popup slot is configured).
+		 * @param array  $context    Everything resolved for this post: post, map_id,
+		 *                           config, marker_id, center, permalink, image_url,
+		 *                           title, description, eyebrow, address, terms,
+		 *                           taxonomy, action_url, action_label, properties.
+		 */
+		$infowindows .= (string) apply_filters( 'draad_maps_post_infowindow_html', $infowindow, $context );
 	}
 
 	// Keep only declared filter properties that produced at least one value.
@@ -409,7 +457,7 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
 	}
 
 	// Infowindow: rich popup mapped from feature properties.
-	$infowindow = draad_maps_build_feature_infowindow( $id, $config );
+	$infowindow = draad_maps_build_feature_infowindow( $id, $config, $tag, $url );
 
 	// Backward compatibility: maps configured before the popup builder still
 	// carry a property_mapping. Fall back to the auto data-table for those.
@@ -431,14 +479,10 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
  * action), but binds to feature properties via a <template>. Returns an empty
  * string when no popup slot is configured.
  */
-function draad_maps_build_feature_infowindow( string $id, array $config ): string {
+function draad_maps_build_feature_infowindow( string $id, array $config, string $tag = '', string $url = '' ): string {
 	$image  = $config['popup_image'] ?? '';
 	$action = $config['popup_action_field'] ?? '';
 	$body   = draad_maps_feature_popup_body( $config );
-
-	if ( '' === $image && '' === $body && '' === $action ) {
-		return '';
-	}
 
 	// The image uses the dedicated media slot (top strip), like WP content.
 	$media = $image
@@ -451,10 +495,43 @@ function draad_maps_build_feature_infowindow( string $id, array $config ): strin
 			. esc_html( draad_maps_feature_action_label( $config ) ) . '</a>';
 	}
 
-	return '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*">'
-		. $media
-		. '<template>' . $tpl . '</template>'
-		. '</dm-infowindow>';
+	$infowindow = ( '' === $image && '' === $body && '' === $action )
+		? ''
+		: '<dm-infowindow for="' . esc_attr( $id ) . '" feature-id="*">'
+			. $media
+			. '<template>' . $tpl . '</template>'
+			. '</dm-infowindow>';
+
+	/**
+	 * The complete `<dm-infowindow>` markup for a GeoJSON/WFS source. Feature
+	 * values are not known server-side, so a custom card binds them inside the
+	 * `<template>` with `data-field="properties.<key>"` / `data-src` / `data-href`.
+	 * Output is echoed raw — escape it yourself.
+	 *
+	 * @param string $infowindow Default markup ('' when no popup slot is configured).
+	 * @param array  $context    source_id, source_type (geojson|wfs), tag, url, map_id,
+	 *                           config, and the resolved parts: media, body, image_field,
+	 *                           action_field, action_label, popup fields (eyebrow, title,
+	 *                           address, text, chips).
+	 */
+	return (string) apply_filters( 'draad_maps_feature_infowindow_html', $infowindow, [
+		'source_id'    => $id,
+		'source_type'  => 'dm-wfs' === $tag ? 'wfs' : 'geojson',
+		'tag'          => $tag,
+		'url'          => $url,
+		'map_id'       => (int) ( $config['_map_id'] ?? 0 ),
+		'config'       => $config,
+		'media'        => $media,
+		'body'         => $body,
+		'image_field'  => $image,
+		'action_field' => $action,
+		'action_label' => draad_maps_feature_action_label( $config ),
+		'eyebrow'      => $config['popup_eyebrow'] ?? '',
+		'title'        => $config['popup_title'] ?? '',
+		'address'      => $config['popup_address'] ?? '',
+		'text'         => draad_maps_normalize_keys( $config['popup_text'] ?? [] ),
+		'chips'        => draad_maps_normalize_keys( $config['popup_chips'] ?? [] ),
+	] );
 }
 
 /**

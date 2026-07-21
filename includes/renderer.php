@@ -91,30 +91,27 @@ function draad_maps_render( int $map_id ): string {
 			}
 		}
 
+		$card_tpl    = '';
+		$card_source = null;
+		$card_type   = '';
+
 		if ( $has_post_query ) {
+			$card_type        = 'post_query';
 			$list_action_text = $action_label !== ''
 				? $action_label
 				: __( 'Read more', 'draad-maps' );
 
-			$output .= '<template>';
-			// Hide the action button on cards whose link has no href (i.e.,
-			// posts with no website and no post content). The bundle strips
-			// the href attribute when properties.url is empty. The external-link
-			// icon itself is handled by the component (only added for cross-origin
-			// links), so no icon-hiding rule is needed here.
-			$output .= '<style>a:not([href]) .action{display:none}</style>';
-			$output .= '<a data-href="properties.url">';
-			$output .= '<img data-src="properties.image" alt="" />';
-			$output .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
-			$output .= '<h3 data-field="properties.title"></h3>';
+			$card_tpl .= '<a data-href="properties.url">';
+			$card_tpl .= '<img data-src="properties.image" alt="" />';
+			$card_tpl .= '<span class="eyebrow" data-field="properties.eyebrow"></span>';
+			$card_tpl .= '<h3 data-field="properties.title"></h3>';
 			if ( ! $list_hide_address ) {
-				$output .= '<span class="address" data-field="properties.address"></span>';
+				$card_tpl .= '<span class="address" data-field="properties.address"></span>';
 			}
-			$output .= '<p data-field="properties.description"></p>';
-			$output .= '<span class="chips" data-chips="properties.chips"></span>';
-			$output .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
-			$output .= '</a>';
-			$output .= '</template>';
+			$card_tpl .= '<p data-field="properties.description"></p>';
+			$card_tpl .= '<span class="chips" data-chips="properties.chips"></span>';
+			$card_tpl .= '<span class="action">' . esc_html( $list_action_text ) . '</span>';
+			$card_tpl .= '</a>';
 		} else {
 			// No post_query: use the first feature source's popup config so the
 			// list cards mirror the configurable GeoJSON/WFS infowindows.
@@ -124,16 +121,53 @@ function draad_maps_render( int $map_id ): string {
 					continue;
 				}
 				$ds['_map_action_label'] = $action_label;
+				$ds['_map_id']           = $map_id;
 				$feature_tpl             = draad_maps_build_feature_list_template( $ds, (bool) $list_hide_address );
 				if ( '' === $feature_tpl ) {
 					continue;
 				}
-				$output .= '<template>';
-				$output .= '<style>a:not([href]) .action{display:none}</style>';
-				$output .= $feature_tpl;
-				$output .= '</template>';
+				$card_tpl    = $feature_tpl;
+				$card_source = $ds;
+				$card_type   = $ds_type;
 				break;
 			}
+		}
+
+		/**
+		 * The `<dm-list>` card markup. Values are bound client-side, so a custom
+		 * card uses `data-field="properties.<key>"`, `data-src`, `data-chips` and
+		 * `data-href` — for post_query maps the available keys are whatever
+		 * `draad_maps_marker_properties` produced. Return '' to render no template
+		 * (the component falls back to its built-in card). Echoed raw — escape it
+		 * yourself.
+		 *
+		 * @param string     $card_tpl Default card markup.
+		 * @param array      $context  card_type (post_query|geojson_url|wfs), map_id,
+		 *                             datasource (the source the card was built from,
+		 *                             null for post_query), datasources, columns,
+		 *                             hide_address, action_label, source_ids.
+		 */
+		$card_tpl = (string) apply_filters( 'draad_maps_list_card_template', $card_tpl, [
+			'card_type'    => $card_type,
+			'map_id'       => $map_id,
+			'datasource'   => $card_source,
+			'datasources'  => $datasources,
+			'columns'      => $list_columns,
+			'hide_address' => (bool) $list_hide_address,
+			'action_label' => $action_label !== '' ? $action_label : __( 'Read more', 'draad-maps' ),
+			'source_ids'   => $list_source_ids,
+		] );
+
+		if ( '' !== $card_tpl ) {
+			$output .= '<template>';
+			// Hide the action button on cards whose link has no href (i.e.,
+			// posts with no website and no post content). The bundle strips
+			// the href attribute when properties.url is empty. The external-link
+			// icon itself is handled by the component (only added for cross-origin
+			// links), so no icon-hiding rule is needed here.
+			$output .= '<style>a:not([href]) .action{display:none}</style>';
+			$output .= $card_tpl;
+			$output .= '</template>';
 		}
 
 		$output .= '</dm-list>';
@@ -141,6 +175,7 @@ function draad_maps_render( int $map_id ): string {
 
 	foreach ( $datasources as $ds ) {
 		$ds['_map_action_label'] = $action_label;
+		$ds['_map_id']           = $map_id;
 		$type                    = $ds['type'] ?? '';
 		$output                 .= draad_maps_render_datasource( $type, $ds );
 	}
