@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-07-22
+
+### Removed
+- Stacking context on the map block root (`position: relative; z-index: 0`), so the block no longer traps map layers below host-theme elements.
+
 ## [1.5.0] - 2026-07-21
 
 ### Added

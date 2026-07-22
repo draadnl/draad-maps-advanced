@@ -332,11 +332,6 @@
 	display: block;
 }
 
-.wp-block-draad-map-advanced {
-	position: relative;
-	z-index: 0;
-}
-
 /* ─── Block-scoped font-family vars ─────────────────────────────────────── */
 
 /* Define the den Haag font-family vars so they're available as cascade
