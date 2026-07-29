@@ -340,6 +340,7 @@
 .wp-block-draad-map-advanced {
 	--heading-font-family:                         var(--denhaag-typography-sans-serif-alternate-font-family, "TheMix", sans-serif);
 	--body-font-family:                            var(--denhaag-typography-sans-serif-font-family, "TheSans", sans-serif);
+	--draad-map-components-heading-font-family:    var(--heading-font-family);
 	--draad-map-components-filter-font-family:     var(--body-font-family);
 	--draad-map-components-search-font-family:     var(--body-font-family);
 	--draad-map-components-infowindow-font-family: var(--body-font-family);

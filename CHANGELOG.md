@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Password-protected posts no longer appear on a map. Their status is still `publish`, so they passed the published-only check and were rendered with title, description and location readable. Their values are also gone from the filter field pickers in the admin.
+- Headings in infowindows, list cards and the filter panel now use the Den Haag heading font (TheMix) instead of falling back to the browser's system font. The theme stylesheet defined `--heading-font-family` but never handed it to the map components.
 
 ## [1.5.1] - 2026-07-22
 
