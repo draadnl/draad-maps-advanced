@@ -246,6 +246,9 @@ function draad_maps_render_post_query( array $config ): string {
 		'post_type'      => sanitize_text_field( $post_type ),
 		'posts_per_page' => -1,
 		'post_status'    => 'publish',
+		// A password-protected post is still post_status "publish", so it would
+		// otherwise land on the map with its title and meta readable.
+		'has_password'   => false,
 		'meta_query'     => [
 			[
 				'key'     => sanitize_text_field( $location_field ),

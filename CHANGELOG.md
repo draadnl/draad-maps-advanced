@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Filter order is now the editor's to decide: each filterable field gets up/down buttons in the data source's filter table, and the map follows that order. Previously the order came from the field vocabulary — alphabetical for custom fields — no matter how the fields were picked.
 
+### Fixed
+- Password-protected posts no longer appear on a map. Their status is still `publish`, so they passed the published-only check and were rendered with title, description and location readable. Their values are also gone from the filter field pickers in the admin.
+
 ## [1.5.1] - 2026-07-22
 
 ### Removed

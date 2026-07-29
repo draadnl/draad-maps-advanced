@@ -84,6 +84,7 @@ function draad_maps_ajax_get_source_values() {
 			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
 			 WHERE p.post_type = %s
 			   AND p.post_status = 'publish'
+			   AND p.post_password = ''
 			   AND pm.meta_key = %s
 			   AND pm.meta_value != ''
 			   AND CHAR_LENGTH( pm.meta_value ) <= 100
@@ -254,6 +255,7 @@ function draad_maps_get_meta_keys_for_post_type( string $post_type ): array {
 			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
 			 WHERE p.post_type = %s
 			   AND p.post_status = 'publish'
+			   AND p.post_password = ''
 			   AND pm.meta_key NOT LIKE %s
 			 ORDER BY pm.meta_key ASC
 			 LIMIT 200",
