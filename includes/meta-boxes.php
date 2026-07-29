@@ -648,12 +648,15 @@ function draad_maps_render_feature_field_select( string $class, $selected, array
 		<?php if ( ! $multiple ) : ?>
 			<option value=""><?php esc_html_e( '— None —', 'draad-maps' ); ?></option>
 		<?php endif; ?>
-		<?php foreach ( $available as $key ) : ?>
-			<option value="<?php echo esc_attr( $key ); ?>" <?php echo in_array( $key, $selected_arr, true ) ? 'selected' : ''; ?><?php echo $meta_attrs( $key ); ?>><?php echo esc_html( $key ); ?></option>
-		<?php endforeach; ?>
+		<?php // Selected first, in the stored order — the filter panel follows this
+		// order, and every serializer reads selectedOptions in DOM order. The rest of
+		// the vocabulary trails behind in whatever order it was discovered. ?>
 		<?php foreach ( $selected_arr as $sv ) : ?>
-			<?php if ( ! in_array( $sv, $available, true ) ) : ?>
-				<option value="<?php echo esc_attr( $sv ); ?>" selected<?php echo $meta_attrs( $sv ); ?>><?php echo esc_html( $sv ); ?></option>
+			<option value="<?php echo esc_attr( $sv ); ?>" selected<?php echo $meta_attrs( $sv ); ?>><?php echo esc_html( $sv ); ?></option>
+		<?php endforeach; ?>
+		<?php foreach ( $available as $key ) : ?>
+			<?php if ( ! in_array( $key, $selected_arr, true ) ) : ?>
+				<option value="<?php echo esc_attr( $key ); ?>"<?php echo $meta_attrs( $key ); ?>><?php echo esc_html( $key ); ?></option>
 			<?php endif; ?>
 		<?php endforeach; ?>
 	</select>

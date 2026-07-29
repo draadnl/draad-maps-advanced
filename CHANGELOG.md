@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Filter order is now the editor's to decide: each filterable field gets up/down buttons in the data source's filter table, and the map follows that order. Previously the order came from the field vocabulary — alphabetical for custom fields — no matter how the fields were picked.
+
 ## [1.5.1] - 2026-07-22
 
 ### Removed

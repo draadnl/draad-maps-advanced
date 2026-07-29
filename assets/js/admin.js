@@ -190,13 +190,14 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 		const head = document.createElement( 'thead' );
 		head.innerHTML =
-			'<tr><th></th><th>' + draadMapsAdmin.i18n.filterLabel +
+			'<tr><th>' + draadMapsAdmin.i18n.filterOrder +
+			'</th><th></th><th>' + draadMapsAdmin.i18n.filterLabel +
 			'</th><th>' + draadMapsAdmin.i18n.filterType +
 			'</th><th>' + draadMapsAdmin.i18n.filterBoolLabel + '</th></tr>';
 		table.appendChild( head );
 
 		const body = document.createElement( 'tbody' );
-		opts.forEach( ( opt ) => {
+		opts.forEach( ( opt, i ) => {
 			const type = opt.dataset.type || 'auto';
 			const tr   = document.createElement( 'tr' );
 			tr.dataset.value = opt.value;
@@ -205,6 +206,14 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			// which would blur whatever the editor was typing in.
 			tr.className     = 'bool' === type ? 'is-bool' : '';
 			tr.innerHTML =
+				'<td class="draad-tokens__meta-order">' +
+					'<button type="button" class="draad-tokens__move" data-dir="-1" title="' +
+						draadMapsAdmin.i18n.moveFieldUp + '" aria-label="' + draadMapsAdmin.i18n.moveFieldUp + '"' +
+						( 0 === i ? ' disabled' : '' ) + '>&#9650;</button>' +
+					'<button type="button" class="draad-tokens__move" data-dir="1" title="' +
+						draadMapsAdmin.i18n.moveFieldDown + '" aria-label="' + draadMapsAdmin.i18n.moveFieldDown + '"' +
+						( i === opts.length - 1 ? ' disabled' : '' ) + '>&#9660;</button>' +
+				'</td>' +
 				'<td class="draad-tokens__meta-key"><code></code></td>' +
 				'<td><input type="text" class="draad-tokens__label" /></td>' +
 				'<td><select class="draad-tokens__type">' +
@@ -309,6 +318,28 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			select.appendChild( opt );
 		}
 		opt.selected = true;
+		// Keep the invariant: selected options sit at the front of the select, in
+		// display order, so a new token lands last instead of wherever the
+		// vocabulary happened to list it.
+		const chosen = Array.from( select.selectedOptions ).filter( ( o ) => o !== opt );
+		const after  = chosen.length ? chosen[ chosen.length - 1 ].nextSibling : select.firstChild;
+		select.insertBefore( opt, after );
+		renderTokens( select );
+	}
+
+	// Swap a token with its neighbour. Moves the <option> itself, so selectedOptions
+	// — which everything else reads — comes out in the new order.
+	function moveToken( select, value, delta ) {
+		const opts = Array.from( select.selectedOptions );
+		const i    = opts.findIndex( ( o ) => o.value === value );
+		const j    = i + delta;
+		if ( i < 0 || j < 0 || j >= opts.length ) return;
+
+		if ( delta < 0 ) {
+			select.insertBefore( opts[ i ], opts[ j ] );
+		} else {
+			select.insertBefore( opts[ j ], opts[ i ] );
+		}
 		renderTokens( select );
 	}
 
@@ -413,10 +444,9 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			};
 		} );
 
-		const all = keys.slice();
-		selected.forEach( ( v ) => {
-			if ( v && ! all.includes( v ) ) all.push( v );
-		} );
+		// Selected first, in their current order — refreshing the vocabulary must
+		// never reshuffle the filters the editor arranged.
+		const all = selected.filter( Boolean ).concat( keys.filter( ( k ) => ! selected.includes( k ) ) );
 
 		sel.innerHTML = isMulti ? '' : '<option value="">' + draadMapsAdmin.i18n.noneOption + '</option>';
 		all.forEach( ( key ) => {
@@ -649,6 +679,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// -------------------------------------------------------------------------
 
 	repeater.addEventListener( 'click', ( e ) => {
+		const moveBtn = e.target.closest( '.draad-tokens__move' );
+		if ( moveBtn ) {
+			const select = tokenSelect( moveBtn );
+			if ( select ) moveToken( select, moveBtn.closest( 'tr' ).dataset.value, Number( moveBtn.dataset.dir ) );
+			return;
+		}
+
 		const removeBtn = e.target.closest( '.draad-tokens__remove' );
 		if ( removeBtn ) {
 			const select = tokenSelect( removeBtn );
