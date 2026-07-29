@@ -37,6 +37,7 @@ function draad_maps_render_settings_box( $post ) {
 	$search_enabled      = get_post_meta( $post->ID, '_draad_map_search_enabled', true );
 	$search_label        = get_post_meta( $post->ID, '_draad_map_search_label', true );
 	$filter_enabled      = get_post_meta( $post->ID, '_draad_map_filter_enabled', true );
+	$filter_dismiss      = 'close' === get_post_meta( $post->ID, '_draad_map_filter_dismiss', true ) ? 'close' : 'actions';
 	$list_enabled        = get_post_meta( $post->ID, '_draad_map_list_enabled', true );
 	$list_columns        = get_post_meta( $post->ID, '_draad_map_list_columns', true );
 	$list_columns        = $list_columns !== '' ? (int) $list_columns : 2;
@@ -152,6 +153,16 @@ function draad_maps_render_settings_box( $post ) {
 					<?php esc_html_e( 'Show filters above the map', 'draad-maps' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Let visitors filter results by category. Configure per data source which properties can be filtered.', 'draad-maps' ); ?></p>
+				<?php // ponytail: shown/hidden purely by CSS :has() on the checkbox above — no JS. ?>
+				<div class="draad-filter-dismiss">
+					<br />
+					<label for="draad_map_filter_dismiss"><?php esc_html_e( 'Closing the filter panel', 'draad-maps' ); ?></label><br />
+					<select id="draad_map_filter_dismiss" name="draad_map_filter_dismiss">
+						<option value="actions" <?php selected( $filter_dismiss, 'actions' ); ?>><?php esc_html_e( 'Buttons at the bottom (Apply / Clear filters)', 'draad-maps' ); ?></option>
+						<option value="close" <?php selected( $filter_dismiss, 'close' ); ?>><?php esc_html_e( 'Cross in the top right', 'draad-maps' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'With buttons, results update only after Apply. With the cross, filtering is immediate.', 'draad-maps' ); ?></p>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -997,6 +1008,7 @@ function draad_maps_save_meta( $post_id, $post ) {
 	update_post_meta( $post_id, '_draad_map_search_enabled', isset( $_POST['draad_map_search_enabled'] ) ? '1' : '' );
 	update_post_meta( $post_id, '_draad_map_search_label', sanitize_text_field( wp_unslash( $_POST['draad_map_search_label'] ?? '' ) ) );
 	update_post_meta( $post_id, '_draad_map_filter_enabled', isset( $_POST['draad_map_filter_enabled'] ) ? '1' : '' );
+	update_post_meta( $post_id, '_draad_map_filter_dismiss', 'close' === ( $_POST['draad_map_filter_dismiss'] ?? '' ) ? 'close' : 'actions' );
 	update_post_meta( $post_id, '_draad_map_list_enabled', isset( $_POST['draad_map_list_enabled'] ) ? '1' : '' );
 	update_post_meta( $post_id, '_draad_map_list_columns', absint( $_POST['draad_map_list_columns'] ?? 2 ) );
 	update_post_meta( $post_id, '_draad_map_list_hide_address', isset( $_POST['draad_map_list_hide_address'] ) ? '1' : '' );

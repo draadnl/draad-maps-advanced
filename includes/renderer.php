@@ -21,6 +21,7 @@ function draad_maps_render( int $map_id ): string {
 
 	$search_enabled    = get_post_meta( $map_id, '_draad_map_search_enabled', true );
 	$filter_enabled    = get_post_meta( $map_id, '_draad_map_filter_enabled', true );
+	$filter_dismiss    = get_post_meta( $map_id, '_draad_map_filter_dismiss', true );
 	$list_enabled      = get_post_meta( $map_id, '_draad_map_list_enabled', true );
 	$list_hide_address = get_post_meta( $map_id, '_draad_map_list_hide_address', true );
 	$action_label      = get_post_meta( $map_id, '_draad_map_action_label', true );
@@ -60,6 +61,12 @@ function draad_maps_render( int $map_id ): string {
 		$bool_label = (string) apply_filters( 'draad_maps_filter_bool_label', __( 'Ja', 'draad-maps' ), $map_id );
 
 		$output .= '<dm-filter slot="toolbar" variant="dropdown"';
+		// The component defaults to explicit apply with the action buttons, so only
+		// the opt-out needs attributes — maps saved before this setting existed get
+		// the buttons without a migration.
+		if ( 'close' === $filter_dismiss ) {
+			$output .= ' submit="auto" dismiss="close"';
+		}
 		if ( ! empty( $filter_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $filter_source_ids ) ) . '"';
 		}

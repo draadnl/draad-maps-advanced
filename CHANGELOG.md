@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Filter order is now the editor's to decide: each filterable field gets up/down buttons in the data source's filter table, and the map follows that order. Previously the order came from the field vocabulary — alphabetical for custom fields — no matter how the fields were picked.
+- Map setting **Closing the filter panel**: choose between the buttons at the bottom of the filter panel (Apply / Clear filters) or the cross in the top right. Appears under the Filters checkbox.
+
+### Changed
+- The filter panel now closes through **Toepassen** / **Filters wissen** at the bottom by default, and results update only after Apply. Visitors did not reliably recognise the cross added in 1.4.4 as the way to close the panel. Existing maps switch over without being re-saved; pick "Cross in the top right" per map to keep the old behaviour.
 
 ### Fixed
 - Password-protected posts no longer appear on a map. Their status is still `publish`, so they passed the published-only check and were rendered with title, description and location readable. Their values are also gone from the filter field pickers in the admin.

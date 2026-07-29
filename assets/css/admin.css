@@ -214,6 +214,15 @@
 	cursor: default;
 }
 
+/* ---- Filter dismiss mode ---- */
+.draad-filter-dismiss {
+	display: none;
+}
+
+td:has( input[name="draad_map_filter_enabled"]:checked ) .draad-filter-dismiss {
+	display: block;
+}
+
 /* ---- Default view ---- */
 .draad-default-view {
 	display: none;

@@ -175,5 +175,118 @@ check( 'comma string splits, empties kept', draad_maps_csv_to_list( 'a,,c' ), [ 
 check( 'array passes through trimmed', draad_maps_csv_to_list( [ ' a ', 'b' ] ), [ 'a', 'b' ] );
 check( 'empty string is an empty list', draad_maps_csv_to_list( '' ), [] );
 
+// ---- Filter field order: the editor's order wins over the vocabulary --------
+
+echo "\nfilter field order\n";
+
+ob_start();
+draad_maps_render_filter_select(
+	'draad-ds-filter-fields',
+	[ 'sport', 'gehandicapten' ],
+	[ 'gehandicapten', 'jeugd', 'sport', 'volwassen' ],
+	[ 'Sporttak', 'Rolstoeltoegankelijk' ]
+);
+$select = ob_get_clean();
+
+preg_match_all( '/<option value="([^"]*)"([^>]*)>/', $select, $m, PREG_SET_ORDER );
+$order    = array_map( static fn( $o ) => $o[1], $m );
+$selected = array_values( array_map(
+	static fn( $o ) => $o[1],
+	array_filter( $m, static fn( $o ) => str_contains( $o[2], 'selected' ) )
+) );
+
+check( 'stored order leads, not the alphabetical vocabulary', array_slice( $order, 0, 2 ), [ 'sport', 'gehandicapten' ] );
+check( 'unselected vocabulary trails, no duplicates', $order, [ 'sport', 'gehandicapten', 'jeugd', 'volwassen' ] );
+check( 'only the stored fields are selected', $selected, [ 'sport', 'gehandicapten' ] );
+check( 'labels stay aligned after the reorder', (bool) preg_match( '/value="gehandicapten"[^>]*data-label="Rolstoeltoegankelijk"/', $select ), true );
+
+// A field that is no longer in the vocabulary must survive as a selected option.
+ob_start();
+draad_maps_render_filter_select( 'draad-ds-filter-fields', [ 'weggehaald', 'jeugd' ], [ 'jeugd' ] );
+$stale = ob_get_clean();
+preg_match_all( '/<option value="([^"]*)"/', $stale, $sm );
+check( 'unknown stored field kept, still first', $sm[1], [ 'weggehaald', 'jeugd' ] );
+
+// ---- Renderer: how the filter panel is dismissed ---------------------------
+
+echo "\nfilter dismiss mode\n";
+
+$GLOBALS['draad_test_meta'] = [];
+
+function get_post( $id ) {
+	$p              = new stdClass();
+	$p->post_type   = 'map';
+	$p->post_status = 'publish';
+	return $p;
+}
+
+function get_post_meta( $id, $key, $single = false ) {
+	return $GLOBALS['draad_test_meta'][ $key ] ?? '';
+}
+
+require_once __DIR__ . '/../includes/renderer.php';
+
+$GLOBALS['draad_test_meta'] = [
+	'_draad_map_filter_enabled' => '1',
+	'_draad_map_datasources'    => wp_json_encode( [ [
+		'type'          => 'geojson_url',
+		'label'         => 'Sport',
+		'url'           => 'https://example.test/a.geojson',
+		'filter_fields' => [ 'sport' ],
+	] ] ),
+];
+
+// Default (and every map saved before the setting existed): the component's own
+// defaults already mean manual submit + action buttons, so nothing is emitted.
+$map = draad_maps_render( 1 );
+check( 'default: no submit attribute', attr( $map, 'submit' ), null );
+check( 'default: no dismiss attribute', attr( $map, 'dismiss' ), null );
+
+$GLOBALS['draad_test_meta']['_draad_map_filter_dismiss'] = 'close';
+$map_close = draad_maps_render( 1 );
+check( 'cross mode: filters apply live again', attr( $map_close, 'submit' ), 'auto' );
+check( 'cross mode: header cross requested', attr( $map_close, 'dismiss' ), 'close' );
+
+$GLOBALS['draad_test_meta']['_draad_map_filter_dismiss'] = 'actions';
+$map_actions = draad_maps_render( 1 );
+check( 'buttons mode: no attributes needed', attr( $map_actions, 'dismiss' ), null );
+
+// ---- Password-protected posts never reach the map ----------------------------
+// post_status stays "publish" on a protected post, so the status check alone
+// lets it through; has_password is what actually keeps it off the map.
+
+$GLOBALS['draad_test_get_posts_args'] = [];
+
+function get_posts( $args ) {
+	$GLOBALS['draad_test_get_posts_args'][] = $args;
+	return [];
+}
+
+draad_maps_render_post_query( [
+	'post_type'      => 'location',
+	'location_field' => 'geo',
+] );
+check(
+	'post query excludes password-protected posts',
+	$GLOBALS['draad_test_get_posts_args'][0]['has_password'] ?? 'missing',
+	false
+);
+
+// The OR union path rebuilds the args twice — the exclusion has to survive both.
+$GLOBALS['draad_test_get_posts_args'] = [];
+draad_maps_query_posts(
+	[ 'post_type' => 'location', 'post_status' => 'publish', 'has_password' => false, 'meta_query' => [ [ 'key' => 'geo', 'compare' => '!=', 'value' => '' ] ] ],
+	[
+		[ 'source' => 'colour', 'operator' => '=', 'value' => 'red' ],
+		[ 'source' => 'category', 'operator' => 'IN', 'value' => 'sport' ],
+	],
+	'OR'
+);
+check(
+	'OR union keeps the exclusion on every query',
+	array_column( $GLOBALS['draad_test_get_posts_args'], 'has_password' ),
+	[ false, false ]
+);
+
 echo "\n" . ( $failures ? "$failures FAILED\n" : "all passed\n" );
 exit( $failures ? 1 : 0 );
