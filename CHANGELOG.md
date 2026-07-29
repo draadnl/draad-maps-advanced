@@ -5,13 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.6.0] - 2026-07-29
 
 ### Added
 - Filter order is now the editor's to decide: each filterable field gets up/down buttons in the data source's filter table, and the map follows that order. Previously the order came from the field vocabulary — alphabetical for custom fields — no matter how the fields were picked.
 - Map setting **Closing the filter panel**: choose between the buttons at the bottom of the filter panel (Apply / Clear filters) or the cross in the top right. Appears under the Filters checkbox.
 
 ### Changed
+- Bundled map components updated to 0.6.0.
 - The filter panel now closes through **Toepassen** / **Filters wissen** at the bottom by default, and results update only after Apply. Visitors did not reliably recognise the cross added in 1.4.4 as the way to close the panel. Existing maps switch over without being re-saved; pick "Cross in the top right" per map to keep the old behaviour.
 
 ### Fixed

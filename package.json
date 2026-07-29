@@ -1,6 +1,6 @@
 {
 	"name": "draad-maps-advanced",
-	"version": "1.5.1",
+	"version": "1.6.0",
 	"private": true,
 	"scripts": {
 		"prebuild": "node scripts/wrap-tokens.js",
@@ -10,7 +10,7 @@
 		"start": "wp-scripts start"
 	},
 	"dependencies": {
-		"@draadnl/map-components": "^0.5.9",
+		"@draadnl/map-components": "^0.6.0",
 		"@gemeente-denhaag/design-tokens": "^1.2.0"
 	},
 	"devDependencies": {
