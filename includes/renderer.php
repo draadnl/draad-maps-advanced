@@ -96,7 +96,11 @@ function draad_maps_render( int $map_id ): string {
 		if ( ! empty( $list_source_ids ) ) {
 			$output .= ' for="' . esc_attr( implode( ',', $list_source_ids ) ) . '"';
 		}
-		$output .= ' columns="' . esc_attr( $list_columns ) . '">';
+		$output .= ' columns="' . esc_attr( $list_columns ) . '"';
+		if ( 'list' === get_post_meta( $map_id, '_draad_map_default_view', true ) ) {
+			$output .= ' open';
+		}
+		$output .= '>';
 
 		// One card template per source: a post_query marker exposes different
 		// properties than a GeoJSON feature, so a single shared template leaves
@@ -182,14 +186,6 @@ function draad_maps_render( int $map_id ): string {
 	}
 
 	$output .= '</dm-map>';
-
-	if ( $list_enabled && 'list' === get_post_meta( $map_id, '_draad_map_default_view', true ) ) {
-		// The component exposes no "open" attribute, so click its toggle once it
-		// has upgraded. ponytail: rAF retry with a cap instead of a MutationObserver.
-		$output .= '<script>(function(){var m=document.currentScript.previousElementSibling,n=0;'
-			. '(function go(){var l=m.querySelector("dm-list"),t=l&&l.shadowRoot&&l.shadowRoot.querySelector(".list__toggle");'
-			. 'if(t){t.click();}else if(++n<120){requestAnimationFrame(go);}})();})();</script>';
-	}
 
 	return $output;
 }

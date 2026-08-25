@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-08-25
+
+### Fixed
+- Maps that open in list view no longer steal focus on page load. The list was opened by simulating a click on the component's toggle button, and the component treats a toggle click as a user action — so it moved focus to the first card and the browser scrolled the page down to it. `<dm-list>` now takes an `open` attribute, so the list starts open declaratively and focus stays where the visitor left it. Keyboard users still get focus on the first card when they open the list themselves.
+
+### Changed
+- Bundled map components updated to 0.6.1.
+
 ## [1.6.0] - 2026-07-29
 
 ### Added
