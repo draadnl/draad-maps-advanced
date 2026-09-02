@@ -4,4 +4,4 @@ allowBuilds:
   "core-js": true
   "unrs-resolver": true
 minimumReleaseAgeExclude:
-  - '@draadnl/map-components@0.5.9 || 0.6.0 || 0.6.1'
+  - '@draadnl/map-components@0.5.9 || 0.6.0 || 0.6.1 || 0.7.0'

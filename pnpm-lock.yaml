@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@draadnl/map-components':
-        specifier: ^0.6.1
-        version: 0.6.1(leaflet@1.9.4)
+        specifier: ^0.7.0
+        version: 0.7.0(leaflet@1.9.4)
       '@gemeente-denhaag/design-tokens':
         specifier: ^1.2.0
         version: 1.2.0
@@ -747,8 +747,8 @@ packages:
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
     engines: {node: '>=10.0.0'}
 
-  '@draadnl/map-components@0.6.1':
-    resolution: {integrity: sha512-PtJDguUKyATfiE8XxMBD7zJWqkgSWa3PsVr5N9W/xNvaHmL4SN57FXj4awiQ4GnotXDnyOoMMuUNXaT1lHUodw==, tarball: https://npm.pkg.github.com/download/@draadnl/map-components/0.6.1/bcf0ec2dec864fc9b17e149585efec7b773c5c8f}
+  '@draadnl/map-components@0.7.0':
+    resolution: {integrity: sha512-dtzMu8Zp6d7BqEOTQqeYBEVpkp6BWMpklX8yu0AgKHeBp8v6Ig1arUwVIABobKiPVoIHkMzPwZsFDvwthoFcCg==, tarball: https://npm.pkg.github.com/download/@draadnl/map-components/0.7.0/063fedbe50b6aa7431d959b00c7293a72b7b1c19}
 
   '@dual-bundle/import-meta-resolve@4.2.1':
     resolution: {integrity: sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg==}
@@ -7301,7 +7301,7 @@ snapshots:
 
   '@discoveryjs/json-ext@0.5.7': {}
 
-  '@draadnl/map-components@0.6.1(leaflet@1.9.4)':
+  '@draadnl/map-components@0.7.0(leaflet@1.9.4)':
     dependencies:
       leaflet.markercluster: 1.5.3(leaflet@1.9.4)
     transitivePeerDependencies:
