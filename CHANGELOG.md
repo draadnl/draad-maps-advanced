@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.2] - 2026-09-02
 
+### Fixed
+- A taxonomy that is both the map's category source and a filterable field keeps the display name and filter type set in the data source's filter table. The category source was applied after the filter table, so it overwrote the editor's label with the taxonomy's own name (an "Onderwerpen" filter on Tags rendered as "Tags") and reset the filter type to auto.
+
 ### Changed
 - Bundled map components updated to 0.7.0. Selecting a search result now re-orders the list nearest-first from that result instead of leaving the order untouched, clearing the search restores the original order, and picking a search result while the list is open no longer floats an infowindow over the cards.
 

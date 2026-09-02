@@ -291,7 +291,10 @@ function draad_maps_render_post_query( array $config ): string {
 		$declared_types[ $prop_key ] = ( $filter_types_arr[ $i ] ?? '' ) ?: 'auto';
 		$declared_bools[ $prop_key ] = $filter_bool_arr[ $i ] ?? '';
 	}
-	if ( $terms_taxonomy ) {
+	// Only when the chips taxonomy is not already a row in the filter table —
+	// otherwise this would overwrite the label, type and bool label the editor
+	// set there with the raw taxonomy defaults.
+	if ( $terms_taxonomy && ! isset( $declared_props[ $terms_taxonomy ] ) ) {
 		$tax_obj   = get_taxonomy( $terms_taxonomy );
 		$tax_label = $tax_obj ? $tax_obj->label : $terms_taxonomy;
 
