@@ -59,7 +59,7 @@ function draad_maps_render_settings_box( $post ) {
 							type="text"
 							id="draad_map_center_search"
 							class="regular-text draad-location-search__input"
-							value="<?php echo esc_attr( $center_label ?: $center ); ?>"
+							value="<?php echo esc_attr( $center_label ); ?>"
 							autocomplete="off"
 							role="combobox"
 							aria-expanded="false"
@@ -78,7 +78,7 @@ function draad_maps_render_settings_box( $post ) {
 							hidden
 						></ul>
 					</div>
-					<p class="description draad-location-search__coords">
+					<p class="description draad-location-search__coords" aria-live="polite">
 						<?php
 						if ( $center ) {
 							echo esc_html( __( 'Coordinates: ', 'draad-maps' ) . $center );
@@ -994,7 +994,10 @@ function draad_maps_save_meta( $post_id, $post ) {
 	}
 
 	if ( isset( $_POST['draad_map_center'] ) ) {
-		update_post_meta( $post_id, '_draad_map_center', sanitize_text_field( wp_unslash( $_POST['draad_map_center'] ) ) );
+		$center = sanitize_text_field( wp_unslash( $_POST['draad_map_center'] ) );
+		if ( '' === $center || preg_match( '/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/', $center ) ) {
+			update_post_meta( $post_id, '_draad_map_center', $center );
+		}
 	}
 
 	if ( isset( $_POST['draad_map_center_label'] ) ) {

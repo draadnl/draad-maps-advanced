@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Coordinates entered in the Start location field are now saved. The field only searched PDOK and only a chosen search result updated the stored value, so typed coordinates were dropped on save. Coordinates outside the Netherlands get an error and block the save, because the map would move them to its edge.
+
 ## [1.6.2] - 2026-09-02
 
 ### Fixed

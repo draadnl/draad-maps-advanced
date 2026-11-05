@@ -316,8 +316,11 @@ msgstr "Velden konden niet worden geladen. Controleer de URL en probeer het opni
 msgid "Service is unreachable: "
 msgstr "De dienst is niet bereikbaar: "
 
-msgid "Search an address or place…"
-msgstr "Zoek een adres of plaats…"
+msgid "Search an address or place, or paste coordinates…"
+msgstr "Zoek een adres of plaats, of plak coördinaten…"
+
+msgid "Enter coordinates as latitude,longitude inside the Netherlands, for example 52.07050,4.30070."
+msgstr "Vul coördinaten in als breedtegraad,lengtegraad binnen Nederland, bijvoorbeeld 52.07050,4.30070."
 
 msgid "No results found."
 msgstr "Geen resultaten gevonden."

@@ -1000,6 +1000,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 // PDOK location autocomplete for Startlocatie
 // -------------------------------------------------------------------------
 
+// Returns "lat,lng" for usable coordinates, false for coordinate-shaped text
+// that can't be used, null for anything else (an address search).
+// ponytail: bounds copy dm-map's default maxBounds, which moves any center
+// outside them to the edge. Pass them from PHP if a map ever sets max-bounds.
+function draadMapsParseCoords( text ) {
+	if ( ! /^-?[\d.]+\s*,\s*-?[\d.]*$/.test( text ) ) return null;
+
+	const [ lat, lng ] = text.split( ',' ).map( Number );
+	if ( ! ( lat >= 50.6 && lat <= 53.8 && lng >= 3 && lng <= 7.3 ) ) return false;
+
+	return lat.toFixed( 5 ) + ',' + lng.toFixed( 5 );
+}
+
 document.addEventListener( 'DOMContentLoaded', () => {
 	const wrapper = document.querySelector( '.draad-location-search' );
 	if ( ! wrapper ) return;
@@ -1050,7 +1063,31 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	function updateCoords( coords ) {
 		hiddenCoords.value = coords;
+		coordsEl.classList.remove( 'is-error' );
 		coordsEl.textContent = coords ? ( i18n.coordinatesLabel || 'Coordinates: ' ) + coords : '';
+	}
+
+	function showCoordsError() {
+		coordsEl.classList.add( 'is-error' );
+		coordsEl.textContent = i18n.coordinatesInvalid || 'Enter coordinates as latitude,longitude inside the Netherlands.';
+	}
+
+	function setPlainCoords( coords ) {
+		hiddenLabel.value = '';
+		updateCoords( coords );
+		closeListbox();
+	}
+
+	function applyTypedCoords() {
+		const coords = draadMapsParseCoords( searchInput.value.trim() );
+		if ( coords === null ) return;
+
+		if ( coords === false ) {
+			showCoordsError();
+			return;
+		}
+
+		setPlainCoords( coords );
 	}
 
 	// -- Suggest --
@@ -1133,6 +1170,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	searchInput.addEventListener( 'input', () => {
 		const q = searchInput.value.trim();
 		clearTimeout( debounceTimer );
+		updateCoords( hiddenCoords.value );
+
+		if ( draadMapsParseCoords( q ) !== null ) {
+			if ( abortCtrl ) abortCtrl.abort();
+			closeListbox();
+			return;
+		}
 
 		if ( q.length < 2 ) {
 			closeListbox();
@@ -1154,6 +1198,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			e.preventDefault();
 			if ( activeIndex >= 0 && items[ activeIndex ] ) {
 				selectOption( items[ activeIndex ] );
+			} else {
+				applyTypedCoords();
 			}
 		} else if ( e.key === 'Escape' ) {
 			closeListbox();
@@ -1168,9 +1214,22 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 	} );
 
+	searchInput.addEventListener( 'change', applyTypedCoords );
+
 	searchInput.addEventListener( 'blur', () => {
 		setTimeout( closeListbox, 150 );
 	} );
+
+	// Capture phase: runs before core's submit handler disables the save buttons.
+	document.getElementById( 'post' )?.addEventListener( 'submit', ( e ) => {
+		if ( searchInput.value === searchInput.defaultValue ) return;
+		if ( draadMapsParseCoords( searchInput.value.trim() ) !== false ) return;
+
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		showCoordsError();
+		searchInput.focus();
+	}, true );
 
 	clearBtn.addEventListener( 'click', () => {
 		searchInput.value = '';

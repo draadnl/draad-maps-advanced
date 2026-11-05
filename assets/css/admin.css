@@ -170,6 +170,10 @@
 	color: #787c82;
 }
 
+.draad-location-search__coords.is-error {
+	color: #d63638;
+}
+
 /* ---- Panel ---- */
 .draad-ds-panel {
 	border: 1px solid #c3c4c7;
