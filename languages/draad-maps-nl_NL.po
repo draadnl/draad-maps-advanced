@@ -346,3 +346,30 @@ msgstr "Lijst"
 
 msgid "Which view visitors see first."
 msgstr "Welke weergave bezoekers als eerste zien."
+
+msgid "Value order"
+msgstr "Volgorde van waarden"
+
+msgid "A to Z"
+msgstr "A tot Z"
+
+msgid "Z to A"
+msgstr "Z tot A"
+
+msgid "Most results first"
+msgstr "Meeste resultaten eerst"
+
+msgid "Fewest results first"
+msgstr "Minste resultaten eerst"
+
+msgid "Manual"
+msgstr "Handmatig"
+
+msgid "One value per line"
+msgstr "Eén waarde per regel"
+
+msgid "With a manual order, list one value per line; capitals are ignored. For a taxonomy, use the term name or slug. Values you leave out follow A to Z."
+msgstr "Zet bij een handmatige volgorde één waarde per regel; hoofdletters maken niet uit. Gebruik bij een taxonomie de naam of slug van de term. Waarden die je weglaat volgen van A tot Z."
+
+msgid "Fields visitors can filter on. Give each one a display name, a filter type (auto, bool, checkbox, range or dropdown) and a value order. A bool field also takes the text shown behind its checkbox. Requires \"Show filters above the map\" in Map settings."
+msgstr "Velden waarop bezoekers kunnen filteren. Geef elk veld een weergavenaam, een filtertype (auto, bool, checkbox, range of dropdown) en een volgorde van waarden. Een bool-veld krijgt ook de tekst achter het selectievakje. Vereist \"Toon filters boven de kaart\" in de kaartinstellingen."

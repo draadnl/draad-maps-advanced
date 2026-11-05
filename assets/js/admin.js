@@ -41,6 +41,15 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	// Whatever dm-filter's `filter-types` accepts.
 	const FILTER_TYPES = [ 'auto', 'bool', 'checkbox', 'range', 'dropdown' ];
 
+	// Whatever dm-filter's `filter-sorts` accepts.
+	const FILTER_SORTS = {
+		'alpha-asc':  draadMapsAdmin.i18n.filterSortAlphaAsc,
+		'alpha-desc': draadMapsAdmin.i18n.filterSortAlphaDesc,
+		'count-desc': draadMapsAdmin.i18n.filterSortCountDesc,
+		'count-asc':  draadMapsAdmin.i18n.filterSortCountAsc,
+		'manual':     draadMapsAdmin.i18n.filterSortManual,
+	};
+
 	// Filterable keys: drop the built-in post fields and unwrap "taxonomy:foo" —
 	// render_post_query matches bare taxonomy names via taxonomy_exists().
 	function filterKeys( keys ) {
@@ -193,18 +202,21 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			'<tr><th>' + draadMapsAdmin.i18n.filterOrder +
 			'</th><th></th><th>' + draadMapsAdmin.i18n.filterLabel +
 			'</th><th>' + draadMapsAdmin.i18n.filterType +
-			'</th><th>' + draadMapsAdmin.i18n.filterBoolLabel + '</th></tr>';
+			'</th><th>' + draadMapsAdmin.i18n.filterSort +
+			'<span class="draad-tokens__meta-bool-head"> / ' + draadMapsAdmin.i18n.filterBoolLabel + '</span></th></tr>';
 		table.appendChild( head );
 
 		const body = document.createElement( 'tbody' );
 		opts.forEach( ( opt, i ) => {
 			const type = opt.dataset.type || 'auto';
+			const sort = opt.dataset.sort || 'alpha-asc';
 			const tr   = document.createElement( 'tr' );
 			tr.dataset.value = opt.value;
-			// The bool cell is rendered for every row and hidden unless the type
-			// is bool — cheaper than rebuilding the row when the type changes,
-			// which would blur whatever the editor was typing in.
+			// A row shows the value order or, for a bool, the checkbox text. Both
+			// are rendered and one is hidden — cheaper than rebuilding the row when
+			// the type changes, which would blur whatever the editor was typing in.
 			tr.className     = 'bool' === type ? 'is-bool' : '';
+			tr.classList.toggle( 'is-manual', 'manual' === sort );
 			tr.innerHTML =
 				'<td class="draad-tokens__meta-order">' +
 					'<button type="button" class="draad-tokens__move" data-dir="-1" title="' +
@@ -222,6 +234,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					).join( '' ) +
 				'</select></td>' +
 				'<td class="draad-tokens__meta-bool">' +
+					'<select class="draad-tokens__sort" aria-label="' + draadMapsAdmin.i18n.filterSort + '">' +
+						Object.keys( FILTER_SORTS ).map( ( s ) =>
+							'<option value="' + s + '"' + ( s === sort ? ' selected' : '' ) + '>' + FILTER_SORTS[ s ] + '</option>'
+						).join( '' ) +
+					'</select>' +
+					'<textarea class="draad-tokens__value-order" rows="4" aria-label="' + draadMapsAdmin.i18n.filterValueOrder +
+						'" placeholder="' + draadMapsAdmin.i18n.filterValueOrder + '"></textarea>' +
 					'<input type="text" class="draad-tokens__bool-label" />' +
 				'</td>';
 			tr.querySelector( 'code' ).textContent = opt.value;
@@ -233,6 +252,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const boolInput       = tr.querySelector( '.draad-tokens__bool-label' );
 			boolInput.value       = opt.dataset.boolLabel || '';
 			boolInput.placeholder = draadMapsAdmin.i18n.filterBoolDefault;
+
+			tr.querySelector( '.draad-tokens__value-order' ).value = opt.dataset.valueOrder || '';
 
 			body.appendChild( tr );
 		} );
@@ -359,14 +380,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		const labels     = [];
 		const types      = [];
 		const boolLabels = [];
+		const sorts      = [];
+		const valueOrders = {};
 		Array.from( select ? select.selectedOptions : [] ).forEach( ( o ) => {
 			fields.push( o.value );
 			labels.push( o.dataset.label || humanize( o.value ) );
 			types.push( o.dataset.type || 'auto' );
 			// Empty means "use the component default" — kept, not squeezed out.
 			boolLabels.push( 'bool' === o.dataset.type ? ( o.dataset.boolLabel || '' ) : '' );
+			sorts.push( o.dataset.sort || 'alpha-asc' );
+			const order = ( o.dataset.valueOrder || '' ).split( '\n' ).map( ( v ) => v.trim() ).filter( Boolean );
+			if ( order.length ) valueOrders[ o.value ] = order;
 		} );
-		return { fields, labels, types, boolLabels };
+		return { fields, labels, types, boolLabels, sorts, valueOrders };
 	}
 
 	// -------------------------------------------------------------------------
@@ -441,6 +467,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				label:     o.dataset.label || '',
 				type:      o.dataset.type || '',
 				boolLabel: o.dataset.boolLabel || '',
+				sort:      o.dataset.sort || '',
+				valueOrder: o.dataset.valueOrder || '',
 			};
 		} );
 
@@ -457,6 +485,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			if ( meta[ key ] && meta[ key ].label ) opt.dataset.label = meta[ key ].label;
 			if ( meta[ key ] && meta[ key ].type ) opt.dataset.type = meta[ key ].type;
 			if ( meta[ key ] && meta[ key ].boolLabel ) opt.dataset.boolLabel = meta[ key ].boolLabel;
+			if ( meta[ key ] && meta[ key ].sort ) opt.dataset.sort = meta[ key ].sort;
+			if ( meta[ key ] && meta[ key ].valueOrder ) opt.dataset.valueOrder = meta[ key ].valueOrder;
 			sel.appendChild( opt );
 		} );
 
@@ -587,6 +617,13 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const opt    = select && tokenOption( select, value );
 			if ( opt ) opt.dataset.type = e.target.value;
 			e.target.closest( 'tr' ).classList.toggle( 'is-bool', 'bool' === e.target.value );
+		}
+
+		if ( e.target.classList.contains( 'draad-tokens__sort' ) ) {
+			const select = tokenSelect( e.target );
+			const opt    = select && tokenOption( select, e.target.closest( 'tr' ).dataset.value );
+			if ( opt ) opt.dataset.sort = e.target.value;
+			e.target.closest( 'tr' ).classList.toggle( 'is-manual', 'manual' === e.target.value );
 		}
 	} );
 
@@ -729,6 +766,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			const select = tokenSelect( e.target );
 			const opt    = select && tokenOption( select, e.target.closest( 'tr' ).dataset.value );
 			if ( opt ) opt.dataset.boolLabel = e.target.value;
+		}
+
+		if ( e.target.classList.contains( 'draad-tokens__value-order' ) ) {
+			const select = tokenSelect( e.target );
+			const opt    = select && tokenOption( select, e.target.closest( 'tr' ).dataset.value );
+			if ( opt ) opt.dataset.valueOrder = e.target.value;
 		}
 	} );
 
@@ -915,6 +958,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			filter_labels:      filters.labels,
 			filter_types:       filters.types,
 			filter_bool_labels: filters.boolLabels,
+			filter_sorts:       filters.sorts,
+			filter_value_orders: filters.valueOrders,
 			available_fields:   available,
 		};
 	}
@@ -961,6 +1006,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					ds.filter_labels     = filters.labels.join( ',' );
 					ds.filter_types      = filters.types.join( ',' );
 					ds.filter_bool_labels = filters.boolLabels.join( ',' );
+					ds.filter_sorts      = filters.sorts.join( ',' );
+					ds.filter_value_orders = filters.valueOrders;
 					ds.query_filters  = serializeQueryFilters( card );
 					ds.query_relation = card.querySelector( '.draad-ds-query-relation' )?.value || 'AND';
 					break;

@@ -133,6 +133,8 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				$entry['filter_labels']     = sanitize_text_field( $ds['filter_labels'] ?? '' );
 				$entry['filter_types']      = sanitize_text_field( $ds['filter_types'] ?? '' );
 				$entry['filter_bool_labels'] = sanitize_text_field( $ds['filter_bool_labels'] ?? '' );
+				$entry['filter_sorts']      = implode( ',', array_map( 'draad_maps_sanitize_filter_sort', explode( ',', (string) ( $ds['filter_sorts'] ?? '' ) ) ) );
+				$entry['filter_value_orders'] = draad_maps_sanitize_filter_value_orders( $ds['filter_value_orders'] ?? [], $entry['filter_properties'] );
 				$entry['query_filters']      = draad_maps_sanitize_query_filters( $ds['query_filters'] ?? [] );
 				$entry['query_relation']     = 'OR' === strtoupper( (string) ( $ds['query_relation'] ?? '' ) ) ? 'OR' : 'AND';
 				break;
@@ -268,6 +270,11 @@ function draad_maps_sanitize_feature_popup( array $ds ): array {
 			static fn( $v ) => sanitize_text_field( (string) $v ),
 			is_array( $ds['filter_bool_labels'] ?? null ) ? $ds['filter_bool_labels'] : []
 		),
+		'filter_sorts'       => array_map(
+			'draad_maps_sanitize_filter_sort',
+			is_array( $ds['filter_sorts'] ?? null ) ? $ds['filter_sorts'] : []
+		),
+		'filter_value_orders' => draad_maps_sanitize_filter_value_orders( $ds['filter_value_orders'] ?? [], $ds['filter_fields'] ?? [] ),
 		'available_fields'   => draad_maps_sanitize_key_list( $ds['available_fields'] ?? [] ),
 		// Retained so maps configured before the popup builder keep rendering.
 		'property_mapping'   => draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] ),
@@ -281,6 +288,45 @@ function draad_maps_sanitize_filter_type( $type ): string {
 	$type = sanitize_key( (string) $type );
 
 	return in_array( $type, [ 'auto', 'bool', 'checkbox', 'range', 'dropdown' ], true ) ? $type : 'auto';
+}
+
+/**
+ * Validate a value order against what dm-filter's `filter-sorts` accepts.
+ */
+function draad_maps_sanitize_filter_sort( $sort ): string {
+	$sort = trim( (string) $sort );
+
+	return in_array( $sort, [ 'alpha-asc', 'alpha-desc', 'count-desc', 'count-asc', 'manual' ], true ) ? $sort : 'alpha-asc';
+}
+
+/**
+ * Sanitize the manual value lists: field key => ordered values. Keyed rather than
+ * index-aligned, so reordering the fields can't hand a list to the wrong one.
+ *
+ * @param mixed           $orders Raw lists.
+ * @param string|string[] $fields The selected filter fields; lists for others go.
+ * @return array<string,string[]>
+ */
+function draad_maps_sanitize_filter_value_orders( $orders, $fields ): array {
+	if ( ! is_array( $orders ) ) {
+		return [];
+	}
+
+	$fields = draad_maps_sanitize_key_list( $fields );
+	$out    = [];
+	foreach ( $orders as $field => $values ) {
+		$field = draad_maps_sanitize_key_list( [ $field ] )[0] ?? '';
+		if ( ! is_array( $values ) || ! in_array( $field, $fields, true ) ) {
+			continue;
+		}
+		$values = array_map( static fn( $v ) => is_scalar( $v ) ? sanitize_text_field( (string) $v ) : '', $values );
+		$values = array_values( array_unique( array_filter( $values, 'strlen' ) ) );
+		if ( $values ) {
+			$out[ $field ] = $values;
+		}
+	}
+
+	return $out;
 }
 
 /**

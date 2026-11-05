@@ -415,6 +415,7 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 
 /* ---- Per-token filter meta (label + type) ---- */
 .draad-tokens__meta {
+	width: 100%;
 	margin-top: 8px;
 	border-collapse: collapse;
 }
@@ -430,7 +431,7 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 	font-size: 12px;
 	font-weight: 400;
 	text-align: left;
-	vertical-align: middle;
+	vertical-align: top;
 }
 
 .draad-tokens__meta thead th {
@@ -438,7 +439,12 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 }
 
 .draad-tokens__meta .draad-tokens__meta-key {
-	white-space: nowrap;
+	min-width: 100px;
+	overflow-wrap: anywhere;
+}
+
+.draad-tokens__meta .draad-tokens__meta-key code {
+	display: inline-block;
 }
 
 .draad-tokens__meta input[type="text"] {
@@ -446,10 +452,22 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 	min-width: 140px;
 }
 
-/* The checkbox text only means anything for a bool filter. Hidden rather than
-   removed so switching the type back and forth keeps what was typed. */
-.draad-tokens__meta tr:not(.is-bool) .draad-tokens__bool-label {
-	visibility: hidden;
+.draad-tokens__meta .draad-tokens__value-order {
+	display: block;
+	width: 100%;
+	min-width: 140px;
+	margin-top: 4px;
+}
+
+/* The checkbox text only means anything for a bool filter, which has no values
+   to order. Hidden rather than removed so switching the type back and forth keeps
+   what was typed. */
+.draad-tokens__meta tr:not(.is-bool) .draad-tokens__bool-label,
+.draad-tokens__meta tr.is-bool .draad-tokens__sort,
+.draad-tokens__meta tr.is-bool .draad-tokens__value-order,
+.draad-tokens__meta tr:not(.is-manual) .draad-tokens__value-order,
+.draad-tokens__meta:not(:has(tr.is-bool)) .draad-tokens__meta-bool-head {
+	display: none;
 }
 
 /* Query-filter repeater: source / operator / value on one line. */
@@ -462,7 +480,7 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 
 .draad-qf-row .draad-qf-value {
 	flex: 1;
-	min-width: 120px;
+	min-width: 100px;
 }
 
 .draad-qf-remove {
