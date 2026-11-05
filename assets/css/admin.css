@@ -431,7 +431,7 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 	font-size: 12px;
 	font-weight: 400;
 	text-align: left;
-	vertical-align: middle;
+	vertical-align: top;
 }
 
 .draad-tokens__meta thead th {
@@ -443,9 +443,20 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
 	overflow-wrap: anywhere;
 }
 
+.draad-tokens__meta .draad-tokens__meta-key code {
+	display: inline-block;
+}
+
 .draad-tokens__meta input[type="text"] {
 	width: 100%;
 	min-width: 140px;
+}
+
+.draad-tokens__meta .draad-tokens__value-order {
+	display: block;
+	width: 100%;
+	min-width: 140px;
+	margin-top: 4px;
 }
 
 /* The checkbox text only means anything for a bool filter, which has no values
@@ -453,6 +464,8 @@ td:has( input[name="draad_map_list_enabled"]:checked ) .draad-default-view {
    what was typed. */
 .draad-tokens__meta tr:not(.is-bool) .draad-tokens__bool-label,
 .draad-tokens__meta tr.is-bool .draad-tokens__sort,
+.draad-tokens__meta tr.is-bool .draad-tokens__value-order,
+.draad-tokens__meta tr:not(.is-manual) .draad-tokens__value-order,
 .draad-tokens__meta:not(:has(tr.is-bool)) .draad-tokens__meta-bool-head {
 	display: none;
 }

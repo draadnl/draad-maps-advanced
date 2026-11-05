@@ -555,6 +555,8 @@ function draad_maps_render_post_query( array $config ): string {
 		if ( array_filter( $emit_sorts, static fn( $s ) => 'alpha-asc' !== $s ) ) {
 			$output .= ' filter-sorts="' . esc_attr( implode( ',', $emit_sorts ) ) . '"';
 		}
+		$config['filter_value_orders'] = draad_maps_resolve_term_value_orders( $config['filter_value_orders'] ?? [] );
+		$output .= draad_maps_filter_value_orders_attr( $config, $emit_props, $emit_sorts );
 	}
 	$output .= '>';
 	$output .= $markers_html;
@@ -575,6 +577,50 @@ function draad_maps_render_wfs( array $config ): string {
 	}
 
 	return draad_maps_render_feature_source( 'dm-wfs', $config, $extra, 'wfs' );
+}
+
+/**
+ * The `filter-value-orders` attribute: the lists of the fields emitted with the
+ * `manual` order. Empty when there are none, so other maps' output is unchanged.
+ *
+ * @param array    $config Datasource config.
+ * @param string[] $fields Emitted filter fields.
+ * @param string[] $sorts  Value orders, aligned to $fields.
+ */
+function draad_maps_filter_value_orders_attr( array $config, array $fields, array $sorts ): string {
+	$stored = is_array( $config['filter_value_orders'] ?? null ) ? $config['filter_value_orders'] : [];
+	$orders = [];
+	foreach ( $fields as $i => $field ) {
+		if ( 'manual' === ( $sorts[ $i ] ?? '' ) && ! empty( $stored[ $field ] ) ) {
+			$orders[ $field ] = array_values( (array) $stored[ $field ] );
+		}
+	}
+
+	return $orders ? ' filter-value-orders="' . esc_attr( wp_json_encode( (object) $orders ) ) . '"' : '';
+}
+
+/**
+ * Turn manual-order entries of taxonomy fields into term names, the text the
+ * filter compares against, so an editor can list a term by its slug or its name.
+ * Entries that match no term stay as typed.
+ *
+ * @param mixed $orders Stored lists, keyed by field.
+ */
+function draad_maps_resolve_term_value_orders( $orders ): array {
+	$orders = is_array( $orders ) ? $orders : [];
+	foreach ( $orders as $field => $values ) {
+		if ( taxonomy_exists( $field ) ) {
+			$orders[ $field ] = array_map(
+				static function ( $value ) use ( $field ) {
+					$term = get_term_by( 'slug', sanitize_title( $value ), $field );
+					return $term ? $term->name : $value;
+				},
+				(array) $values
+			);
+		}
+	}
+
+	return $orders;
 }
 
 /**
@@ -637,6 +683,7 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
 		if ( array_filter( $filter_sorts, static fn( $s ) => 'alpha-asc' !== $s ) ) {
 			$attrs .= ' filter-sorts="' . esc_attr( implode( ',', $filter_sorts ) ) . '"';
 		}
+		$attrs .= draad_maps_filter_value_orders_attr( $config, $filter_fields, $filter_sorts );
 	}
 
 	// Infowindow: rich popup mapped from feature properties.

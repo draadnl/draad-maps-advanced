@@ -64,6 +64,8 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 			'filterSortAlphaDesc' => __( 'Z to A', 'draad-maps' ),
 			'filterSortCountDesc' => __( 'Most results first', 'draad-maps' ),
 			'filterSortCountAsc'  => __( 'Fewest results first', 'draad-maps' ),
+			'filterSortManual'    => __( 'Manual', 'draad-maps' ),
+			'filterValueOrder'    => __( 'One value per line', 'draad-maps' ),
 			'filterBoolLabel'    => __( 'Checkbox text', 'draad-maps' ),
 			'filterBoolDefault'  => __( 'Ja', 'draad-maps' ),
 			'datasourcePrefix'   => __( 'Data source ', 'draad-maps' ),

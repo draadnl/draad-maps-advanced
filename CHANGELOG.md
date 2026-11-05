@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - The Start location setting has a map: click it to place the pin and set the coordinates, as in the v1 maps.
-- Each filterable field has a value order: A to Z (default), Z to A, most results first or fewest results first, with ties A to Z. Existing maps stay A to Z.
+- Each filterable field has a value order: A to Z (default), Z to A, most results first, fewest results first or manual, with ties A to Z. Existing maps stay A to Z. A manual order takes a list of values, one per line, ignoring capitals, with term names or slugs for a taxonomy; values not listed follow A to Z.
 
 ### Fixed
 - Coordinates entered in the Start location field are now saved. The field only searched PDOK and only a chosen search result updated the stored value, so typed coordinates were dropped on save. Coordinates outside the Netherlands get an error and block the save, because the map would move them to its edge.

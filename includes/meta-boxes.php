@@ -297,6 +297,7 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 	$filter_types      = $ds['filter_types'] ?? '';
 	$filter_bool_labels = $ds['filter_bool_labels'] ?? '';
 	$filter_sorts      = $ds['filter_sorts'] ?? '';
+	$filter_value_orders = $ds['filter_value_orders'] ?? [];
 	$url               = $ds['url'] ?? '';
 	$typename          = $ds['typename'] ?? '';
 	$layers            = $ds['layers'] ?? '';
@@ -446,10 +447,12 @@ function draad_maps_render_datasource_card( int $index, array $ds, array $public
 							$filter_labels,
 							$filter_types,
 							$filter_bool_labels,
-							$filter_sorts
+							$filter_sorts,
+							$filter_value_orders
 						);
 						?>
 						<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Give each one a display name, a filter type (auto, bool, checkbox, range or dropdown) and a value order. A bool field also takes the text shown behind its checkbox. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p>
+						<p class="description"><?php esc_html_e( 'With a manual order, list one value per line; capitals are ignored. For a taxonomy, use the term name or slug. Values you leave out follow A to Z.', 'draad-maps' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -619,10 +622,12 @@ function draad_maps_render_feature_popup_fields( array $ds = [] ) {
 				$ds['filter_labels'] ?? [],
 				$ds['filter_types'] ?? [],
 				$ds['filter_bool_labels'] ?? [],
-				$ds['filter_sorts'] ?? []
+				$ds['filter_sorts'] ?? [],
+				$ds['filter_value_orders'] ?? []
 			);
 			?>
-			<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p></td>
+			<p class="description"><?php esc_html_e( 'Fields visitors can filter on. Requires "Show filters above the map" in Map settings.', 'draad-maps' ); ?></p>
+			<p class="description"><?php esc_html_e( 'With a manual order, list one value per line; capitals are ignored. For a taxonomy, use the term name or slug. Values you leave out follow A to Z.', 'draad-maps' ); ?></p></td>
 	</tr>
 	<?php
 }
@@ -635,7 +640,7 @@ function draad_maps_render_feature_popup_fields( array $ds = [] ) {
  * @param string[]        $available Available property keys.
  * @param bool            $multiple Allow multiple selection.
  */
-function draad_maps_render_feature_field_select( string $class, $selected, array $available, bool $multiple = false, array $labels = [], array $types = [], array $bool_labels = [], array $sorts = [] ) {
+function draad_maps_render_feature_field_select( string $class, $selected, array $available, bool $multiple = false, array $labels = [], array $types = [], array $bool_labels = [], array $sorts = [], array $value_orders = [] ) {
 	$selected_arr = array_filter( array_map( 'strval', (array) $selected ), static fn( $v ) => '' !== $v );
 	$available    = array_map( 'strval', $available );
 
@@ -644,7 +649,7 @@ function draad_maps_render_feature_field_select( string $class, $selected, array
 	$filter_meta = ! empty( $labels ) || ! empty( $types ) || str_contains( $class, 'filter' );
 
 	// Per-token display name / filter type ride along on the option.
-	$meta_attrs = static function ( string $key ) use ( $selected_arr, $labels, $types, $bool_labels, $sorts, $filter_meta ): string {
+	$meta_attrs = static function ( string $key ) use ( $selected_arr, $labels, $types, $bool_labels, $sorts, $value_orders, $filter_meta ): string {
 		if ( ! $filter_meta ) {
 			return '';
 		}
@@ -661,6 +666,9 @@ function draad_maps_render_feature_field_select( string $class, $selected, array
 		}
 		if ( false !== $i && ! empty( $sorts[ $i ] ) ) {
 			$out .= ' data-sort="' . esc_attr( $sorts[ $i ] ) . '"';
+		}
+		if ( false !== $i && ! empty( $value_orders[ $key ] ) && is_array( $value_orders[ $key ] ) ) {
+			$out .= ' data-value-order="' . esc_attr( implode( "\n", $value_orders[ $key ] ) ) . '"';
 		}
 		return $out;
 	};
@@ -695,8 +703,9 @@ function draad_maps_render_feature_field_select( string $class, $selected, array
  * @param string|string[] $types     Filter types, aligned to $selected.
  * @param string|string[] $bool_labels Checkbox texts for bool filters, aligned to $selected.
  * @param string|string[] $sorts     Value orders, aligned to $selected.
+ * @param array           $value_orders Manual value lists, keyed by field.
  */
-function draad_maps_render_filter_select( string $class, $selected, array $available, $labels = [], $types = [], $bool_labels = [], $sorts = [] ) {
+function draad_maps_render_filter_select( string $class, $selected, array $available, $labels = [], $types = [], $bool_labels = [], $sorts = [], $value_orders = [] ) {
 	draad_maps_render_feature_field_select(
 		$class,
 		draad_maps_normalize_keys( $selected ),
@@ -705,7 +714,8 @@ function draad_maps_render_filter_select( string $class, $selected, array $avail
 		draad_maps_csv_to_list( $labels ),
 		draad_maps_csv_to_list( $types ),
 		draad_maps_csv_to_list( $bool_labels ),
-		draad_maps_csv_to_list( $sorts )
+		draad_maps_csv_to_list( $sorts ),
+		is_array( $value_orders ) ? $value_orders : []
 	);
 }
 
