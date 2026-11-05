@@ -17,6 +17,9 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 		return;
 	}
 
+	// The start location picker is a dm-map.
+	draad_maps_enqueue_frontend_assets();
+
 	// ponytail: filemtime as version — the plugin version alone leaves edited
 	// admin assets cached in the browser between releases.
 	wp_enqueue_style(

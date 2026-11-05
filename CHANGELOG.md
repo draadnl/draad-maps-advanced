@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The Start location setting has a map: click it to place the pin and set the coordinates, as in the v1 maps.
+
 ### Fixed
 - Coordinates entered in the Start location field are now saved. The field only searched PDOK and only a chosen search result updated the stored value, so typed coordinates were dropped on save. Coordinates outside the Netherlands get an error and block the save, because the map would move them to its edge.
 

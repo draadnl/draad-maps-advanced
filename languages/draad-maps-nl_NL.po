@@ -322,6 +322,9 @@ msgstr "Zoek een adres of plaats, of plak coördinaten…"
 msgid "Enter coordinates as latitude,longitude inside the Netherlands, for example 52.07050,4.30070."
 msgstr "Vul coördinaten in als breedtegraad,lengtegraad binnen Nederland, bijvoorbeeld 52.07050,4.30070."
 
+msgid "Click the map to place the pin at the start location."
+msgstr "Klik op de kaart om de pin op de startlocatie te zetten."
+
 msgid "No results found."
 msgstr "Geen resultaten gevonden."
 

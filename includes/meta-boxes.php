@@ -97,6 +97,10 @@ function draad_maps_render_settings_box( $post ) {
 						name="draad_map_center_label"
 						value="<?php echo esc_attr( $center_label ); ?>"
 					/>
+					<dm-map class="draad-location-search__map" center="<?php echo esc_attr( $center ); ?>" zoom="<?php echo esc_attr( $zoom ); ?>">
+						<dm-marker center="<?php echo esc_attr( $center ); ?>"></dm-marker>
+					</dm-map>
+					<p class="description"><?php esc_html_e( 'Click the map to place the pin at the start location.', 'draad-maps' ); ?></p>
 				</div>
 			</td>
 		</tr>

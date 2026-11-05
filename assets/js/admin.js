@@ -1023,6 +1023,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 	const coordsEl     = wrapper.querySelector( '.draad-location-search__coords' );
 	const hiddenCoords = document.getElementById( 'draad_map_center' );
 	const hiddenLabel  = document.getElementById( 'draad_map_center_label' );
+	const mapEl        = wrapper.querySelector( '.draad-location-search__map' );
+	const pin          = mapEl.querySelector( 'dm-marker' );
 
 	const suggestUrl = wrapper.dataset.pdokSuggestUrl;
 	const lookupUrl  = wrapper.dataset.pdokLookupUrl;
@@ -1065,11 +1067,22 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		hiddenCoords.value = coords;
 		coordsEl.classList.remove( 'is-error' );
 		coordsEl.textContent = coords ? ( i18n.coordinatesLabel || 'Coordinates: ' ) + coords : '';
+
+		if ( coords ) {
+			pin.setAttribute( 'center', coords );
+			pin.removeAttribute( 'hidden' );
+		} else {
+			pin.setAttribute( 'hidden', '' );
+		}
 	}
 
 	function showCoordsError() {
 		coordsEl.classList.add( 'is-error' );
 		coordsEl.textContent = i18n.coordinatesInvalid || 'Enter coordinates as latitude,longitude inside the Netherlands.';
+	}
+
+	function panToCoords( coords ) {
+		mapEl.map?.panTo( coords.split( ',' ).map( Number ) );
 	}
 
 	function setPlainCoords( coords ) {
@@ -1088,6 +1101,19 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 
 		setPlainCoords( coords );
+		panToCoords( coords );
+	}
+
+	function bindMapClick( map ) {
+		map.on( 'click', ( e ) => {
+			const coords = draadMapsParseCoords( e.latlng.lat.toFixed( 5 ) + ',' + e.latlng.lng.toFixed( 5 ) );
+			if ( coords ) {
+				searchInput.value = '';
+				setPlainCoords( coords );
+			} else {
+				showCoordsError();
+			}
+		} );
 	}
 
 	// -- Suggest --
@@ -1160,6 +1186,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				searchInput.value  = label;
 				hiddenLabel.value  = label;
 				updateCoords( coords );
+				panToCoords( coords );
 				closeListbox();
 			} )
 			.catch( () => {} );
@@ -1230,6 +1257,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		showCoordsError();
 		searchInput.focus();
 	}, true );
+
+	if ( mapEl.map ) {
+		bindMapClick( mapEl.map );
+	} else {
+		mapEl.addEventListener( 'dm-map:ready', ( e ) => bindMapClick( e.detail.map ), { once: true } );
+	}
 
 	clearBtn.addEventListener( 'click', () => {
 		searchInput.value = '';
