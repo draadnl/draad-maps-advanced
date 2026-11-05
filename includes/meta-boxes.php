@@ -1032,6 +1032,7 @@ function draad_maps_save_meta( $post_id, $post ) {
 
 	if ( isset( $_POST['draad_map_datasources'] ) ) {
 		$json = wp_unslash( $_POST['draad_map_datasources'] );
-		update_post_meta( $post_id, '_draad_map_datasources', draad_maps_sanitize_datasources( $json ) );
+		// update_post_meta() unslashes, which would strip the JSON's own escapes.
+		update_post_meta( $post_id, '_draad_map_datasources', wp_slash( draad_maps_sanitize_datasources( $json ) ) );
 	}
 }
