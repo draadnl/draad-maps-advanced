@@ -17,6 +17,9 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 		return;
 	}
 
+	// The start location picker is a dm-map.
+	draad_maps_enqueue_frontend_assets();
+
 	// ponytail: filemtime as version — the plugin version alone leaves edited
 	// admin assets cached in the browser between releases.
 	wp_enqueue_style(
@@ -59,11 +62,12 @@ function draad_maps_enqueue_admin_assets( string $hook ) {
 			'filterBoolLabel'    => __( 'Checkbox text', 'draad-maps' ),
 			'filterBoolDefault'  => __( 'Ja', 'draad-maps' ),
 			'datasourcePrefix'   => __( 'Data source ', 'draad-maps' ),
-			'searchPlaceholder'  => __( 'Search an address or place…', 'draad-maps' ),
+			'searchPlaceholder'  => __( 'Search an address or place, or paste coordinates…', 'draad-maps' ),
 			'searchNoResults'    => __( 'No results found.', 'draad-maps' ),
 			'searchError'        => __( 'Location service unreachable.', 'draad-maps' ),
 			'searchClear'        => __( 'Clear location', 'draad-maps' ),
 			'coordinatesLabel'   => __( 'Coordinates: ', 'draad-maps' ),
+			'coordinatesInvalid' => __( 'Enter coordinates as latitude,longitude inside the Netherlands, for example 52.07050,4.30070.', 'draad-maps' ),
 		],
 	] );
 }

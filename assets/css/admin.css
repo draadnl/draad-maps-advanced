@@ -104,6 +104,7 @@
 /* ---- Location search autocomplete ---- */
 .draad-location-search {
 	position: relative;
+	container-type: inline-size;
 }
 
 .draad-location-search__input-wrap {
@@ -168,6 +169,24 @@
 .draad-location-search__coords {
 	margin-top: 4px;
 	color: #787c82;
+}
+
+.draad-location-search__coords.is-error {
+	color: #d63638;
+}
+
+.draad-location-search__map {
+	/* 3:2 from the field's width. aspect-ratio would turn min-height into a 375px minimum width and overflow on phones. */
+	height: 66.667cqw;
+	min-height: 250px;
+	max-height: 400px;
+	aspect-ratio: auto;
+	margin-top: 8px;
+}
+
+/* No search or filters here, so the empty toolbar would only be a white band above the map. */
+.draad-location-search__map::part(toolbar) {
+	display: none;
 }
 
 /* ---- Panel ---- */
