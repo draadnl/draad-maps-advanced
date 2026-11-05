@@ -346,3 +346,21 @@ msgstr "Lijst"
 
 msgid "Which view visitors see first."
 msgstr "Welke weergave bezoekers als eerste zien."
+
+msgid "Value order"
+msgstr "Volgorde van waarden"
+
+msgid "A to Z"
+msgstr "A tot Z"
+
+msgid "Z to A"
+msgstr "Z tot A"
+
+msgid "Most results first"
+msgstr "Meeste resultaten eerst"
+
+msgid "Fewest results first"
+msgstr "Minste resultaten eerst"
+
+msgid "Fields visitors can filter on. Give each one a display name, a filter type (auto, bool, checkbox, range or dropdown) and a value order. A bool field also takes the text shown behind its checkbox. Requires \"Show filters above the map\" in Map settings."
+msgstr "Velden waarop bezoekers kunnen filteren. Geef elk veld een weergavenaam, een filtertype (auto, bool, checkbox, range of dropdown) en een volgorde van waarden. Een bool-veld krijgt ook de tekst achter het selectievakje. Vereist \"Toon filters boven de kaart\" in de kaartinstellingen."

@@ -233,6 +233,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$filter_labels     = $config['filter_labels'] ?? '';
 	$filter_types      = $config['filter_types'] ?? '';
 	$filter_bool_labels = $config['filter_bool_labels'] ?? '';
+	$filter_sorts      = $config['filter_sorts'] ?? '';
 	$map_action_label  = $config['_map_action_label'] ?? '';
 	$marker_icon_attrs = draad_maps_marker_icon_attrs( $config['marker_color'] ?? '' );
 
@@ -273,6 +274,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$filter_labels_arr  = $filter_labels ? array_map( 'trim', explode( ',', $filter_labels ) ) : [];
 	$filter_types_arr   = $filter_types ? array_map( 'trim', explode( ',', $filter_types ) ) : [];
 	$filter_bool_arr    = $filter_bool_labels ? array_map( 'trim', explode( ',', $filter_bool_labels ) ) : [];
+	$filter_sorts_arr   = $filter_sorts ? array_map( 'trim', explode( ',', $filter_sorts ) ) : [];
 
 	// Filter properties + labels merged with the taxonomy entry (if any).
 	// Built as ordered pairs so we can drop entries that end up with no
@@ -282,6 +284,7 @@ function draad_maps_render_post_query( array $config ): string {
 	$declared_props = [];
 	$declared_types = [];
 	$declared_bools = [];
+	$declared_sorts = [];
 	foreach ( $filter_props_array as $i => $prop_key ) {
 		$prop_key = trim( $prop_key );
 		if ( $prop_key === '' ) {
@@ -290,6 +293,7 @@ function draad_maps_render_post_query( array $config ): string {
 		$declared_props[ $prop_key ] = $filter_labels_arr[ $i ] ?? $prop_key;
 		$declared_types[ $prop_key ] = ( $filter_types_arr[ $i ] ?? '' ) ?: 'auto';
 		$declared_bools[ $prop_key ] = $filter_bool_arr[ $i ] ?? '';
+		$declared_sorts[ $prop_key ] = draad_maps_sanitize_filter_sort( $filter_sorts_arr[ $i ] ?? '' );
 	}
 	// Only when the chips taxonomy is not already a row in the filter table —
 	// otherwise this would overwrite the label, type and bool label the editor
@@ -301,6 +305,7 @@ function draad_maps_render_post_query( array $config ): string {
 		$declared_props[ $terms_taxonomy ] = $tax_label;
 		$declared_types[ $terms_taxonomy ] = 'auto';
 		$declared_bools[ $terms_taxonomy ] = '';
+		$declared_sorts[ $terms_taxonomy ] = 'alpha-asc';
 	}
 
 	$active_filter_props = [];
@@ -524,12 +529,14 @@ function draad_maps_render_post_query( array $config ): string {
 	$emit_labels = [];
 	$emit_types  = [];
 	$emit_bools  = [];
+	$emit_sorts  = [];
 	foreach ( $declared_props as $prop_key => $prop_label ) {
 		if ( isset( $active_filter_props[ $prop_key ] ) ) {
 			$emit_props[]  = $prop_key;
 			$emit_labels[] = $prop_label;
 			$emit_types[]  = $declared_types[ $prop_key ] ?? 'auto';
 			$emit_bools[]  = $declared_bools[ $prop_key ] ?? '';
+			$emit_sorts[]  = $declared_sorts[ $prop_key ] ?? 'alpha-asc';
 		}
 	}
 
@@ -544,6 +551,9 @@ function draad_maps_render_post_query( array $config ): string {
 		}
 		if ( array_filter( $emit_bools ) ) {
 			$output .= ' filter-bool-labels="' . esc_attr( implode( ',', $emit_bools ) ) . '"';
+		}
+		if ( array_filter( $emit_sorts, static fn( $s ) => 'alpha-asc' !== $s ) ) {
+			$output .= ' filter-sorts="' . esc_attr( implode( ',', $emit_sorts ) ) . '"';
 		}
 	}
 	$output .= '>';
@@ -601,14 +611,17 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
 		$stored_labels = is_array( $config['filter_labels'] ?? null ) ? array_values( $config['filter_labels'] ) : [];
 		$stored_types  = is_array( $config['filter_types'] ?? null ) ? array_values( $config['filter_types'] ) : [];
 		$stored_bools  = is_array( $config['filter_bool_labels'] ?? null ) ? array_values( $config['filter_bool_labels'] ) : [];
+		$stored_sorts  = is_array( $config['filter_sorts'] ?? null ) ? array_values( $config['filter_sorts'] ) : [];
 
 		$filter_labels = [];
 		$filter_types  = [];
 		$filter_bools  = [];
+		$filter_sorts  = [];
 		foreach ( $filter_fields as $i => $field ) {
 			$filter_labels[] = ( $stored_labels[ $i ] ?? '' ) ?: draad_maps_humanize_key( $field );
 			$filter_types[]  = ( $stored_types[ $i ] ?? '' ) ?: 'auto';
 			$filter_bools[]  = $stored_bools[ $i ] ?? '';
+			$filter_sorts[]  = draad_maps_sanitize_filter_sort( $stored_sorts[ $i ] ?? '' );
 		}
 
 		$attrs .= ' filter-properties="' . esc_attr( implode( ',', $filter_fields ) ) . '"';
@@ -620,6 +633,9 @@ function draad_maps_render_feature_source( string $tag, array $config, string $e
 		}
 		if ( array_filter( $filter_bools ) ) {
 			$attrs .= ' filter-bool-labels="' . esc_attr( implode( ',', $filter_bools ) ) . '"';
+		}
+		if ( array_filter( $filter_sorts, static fn( $s ) => 'alpha-asc' !== $s ) ) {
+			$attrs .= ' filter-sorts="' . esc_attr( implode( ',', $filter_sorts ) ) . '"';
 		}
 	}
 

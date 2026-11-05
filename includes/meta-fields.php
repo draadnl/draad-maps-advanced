@@ -133,6 +133,7 @@ function draad_maps_sanitize_datasources( string $json ): string {
 				$entry['filter_labels']     = sanitize_text_field( $ds['filter_labels'] ?? '' );
 				$entry['filter_types']      = sanitize_text_field( $ds['filter_types'] ?? '' );
 				$entry['filter_bool_labels'] = sanitize_text_field( $ds['filter_bool_labels'] ?? '' );
+				$entry['filter_sorts']      = implode( ',', array_map( 'draad_maps_sanitize_filter_sort', explode( ',', (string) ( $ds['filter_sorts'] ?? '' ) ) ) );
 				$entry['query_filters']      = draad_maps_sanitize_query_filters( $ds['query_filters'] ?? [] );
 				$entry['query_relation']     = 'OR' === strtoupper( (string) ( $ds['query_relation'] ?? '' ) ) ? 'OR' : 'AND';
 				break;
@@ -268,6 +269,10 @@ function draad_maps_sanitize_feature_popup( array $ds ): array {
 			static fn( $v ) => sanitize_text_field( (string) $v ),
 			is_array( $ds['filter_bool_labels'] ?? null ) ? $ds['filter_bool_labels'] : []
 		),
+		'filter_sorts'       => array_map(
+			'draad_maps_sanitize_filter_sort',
+			is_array( $ds['filter_sorts'] ?? null ) ? $ds['filter_sorts'] : []
+		),
 		'available_fields'   => draad_maps_sanitize_key_list( $ds['available_fields'] ?? [] ),
 		// Retained so maps configured before the popup builder keep rendering.
 		'property_mapping'   => draad_maps_sanitize_property_mapping( $ds['property_mapping'] ?? [] ),
@@ -281,6 +286,15 @@ function draad_maps_sanitize_filter_type( $type ): string {
 	$type = sanitize_key( (string) $type );
 
 	return in_array( $type, [ 'auto', 'bool', 'checkbox', 'range', 'dropdown' ], true ) ? $type : 'auto';
+}
+
+/**
+ * Validate a value order against what dm-filter's `filter-sorts` accepts.
+ */
+function draad_maps_sanitize_filter_sort( $sort ): string {
+	$sort = trim( (string) $sort );
+
+	return in_array( $sort, [ 'alpha-asc', 'alpha-desc', 'count-desc', 'count-asc' ], true ) ? $sort : 'alpha-asc';
 }
 
 /**

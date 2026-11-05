@@ -69,6 +69,7 @@ $json = wp_json_encode( [ [
 	'filter_labels' => [ 'Sporttak', '', 'Bouwjaar' ],
 	'filter_types'  => [ 'dropdown', 'bool', 'nonsense' ],
 	'filter_bool_labels' => [ '', 'Nu meedenken', '' ],
+	'filter_sorts'  => [ 'count-desc', 'alpha-desc', 'nonsense' ],
 ] ] );
 
 $out = json_decode( draad_maps_sanitize_datasources( $json ), true )[0];
@@ -77,6 +78,9 @@ check( 'fields kept in order', $out['filter_fields'], [ 'sport', 'jeugd', 'bouwj
 check( 'labels stay index-aligned (empty slot kept)', $out['filter_labels'], [ 'Sporttak', '', 'Bouwjaar' ] );
 check( 'unknown filter type falls back to auto', $out['filter_types'], [ 'dropdown', 'bool', 'auto' ] );
 check( 'bool labels stay index-aligned', $out['filter_bool_labels'], [ '', 'Nu meedenken', '' ] );
+check( 'unknown value order falls back to alpha-asc, aligned', $out['filter_sorts'], [ 'count-desc', 'alpha-desc', 'alpha-asc' ] );
+check( 'all four value orders are accepted', array_map( 'draad_maps_sanitize_filter_sort', [ 'alpha-asc', 'alpha-desc', 'count-desc', 'count-asc' ] ), [ 'alpha-asc', 'alpha-desc', 'count-desc', 'count-asc' ] );
+check( 'blank value order means alpha-asc', draad_maps_sanitize_filter_sort( '' ), 'alpha-asc' );
 
 // ---- Renderer: configured labels/types reach the component ------------------
 
@@ -88,6 +92,7 @@ check( 'filter-properties emitted', attr( $html, 'filter-properties' ), 'sport,j
 check( 'blank label falls back to humanized key', attr( $html, 'filter-labels' ), 'Sporttak,Jeugd,Bouwjaar' );
 check( 'filter-types emitted when overridden', attr( $html, 'filter-types' ), 'dropdown,bool,auto' );
 check( 'filter-bool-labels emitted, blanks kept aligned', attr( $html, 'filter-bool-labels' ), ',Nu meedenken,' );
+check( 'filter-sorts emitted when overridden', attr( $html, 'filter-sorts' ), 'count-desc,alpha-desc,alpha-asc' );
 
 // Legacy config: filter_fields only, no labels/types stored.
 $legacy = [
@@ -101,6 +106,10 @@ $legacy_html = draad_maps_render_geojson( $legacy );
 check( 'legacy: labels humanized', attr( $legacy_html, 'filter-labels' ), 'Wijk Naam,Stadsdeel' );
 check( 'legacy: all-auto types omit the attribute', attr( $legacy_html, 'filter-types' ), null );
 check( 'legacy: no bool labels means no attribute', attr( $legacy_html, 'filter-bool-labels' ), null );
+check( 'legacy: no value orders means no attribute', attr( $legacy_html, 'filter-sorts' ), null );
+
+$all_alpha_html = draad_maps_render_geojson( $legacy + [ 'filter_sorts' => [ 'alpha-asc', 'nonsense' ] ] );
+check( 'all-default value orders omit the attribute', attr( $all_alpha_html, 'filter-sorts' ), null );
 
 // ---- post_query still speaks comma strings ---------------------------------
 
@@ -115,12 +124,14 @@ $pq = json_decode( draad_maps_sanitize_datasources( wp_json_encode( [ [
 	'filter_labels'     => 'Is dit een leuke sport?,Sporttak',
 	'filter_types'      => 'bool,auto',
 	'filter_bool_labels' => 'Nu meedenken,',
+	'filter_sorts'      => 'alpha-desc,nonsense',
 ] ] ) ), true )[0];
 
 check( 'comma storage untouched', $pq['filter_properties'], 'fun_sport,sport' );
 check( 'labels with punctuation survive', $pq['filter_labels'], 'Is dit een leuke sport?,Sporttak' );
 check( 'types survive', $pq['filter_types'], 'bool,auto' );
 check( 'bool labels survive as a comma string', $pq['filter_bool_labels'], 'Nu meedenken,' );
+check( 'value orders stay a comma string, unknown means alpha-asc', $pq['filter_sorts'], 'alpha-desc,alpha-asc' );
 
 // ---- Query filters: repeater rows → meta_query / tax_query clauses ----------
 
@@ -184,7 +195,10 @@ draad_maps_render_filter_select(
 	'draad-ds-filter-fields',
 	[ 'sport', 'gehandicapten' ],
 	[ 'gehandicapten', 'jeugd', 'sport', 'volwassen' ],
-	[ 'Sporttak', 'Rolstoeltoegankelijk' ]
+	[ 'Sporttak', 'Rolstoeltoegankelijk' ],
+	[],
+	[],
+	[ 'count-desc', 'alpha-asc' ]
 );
 $select = ob_get_clean();
 
@@ -199,6 +213,7 @@ check( 'stored order leads, not the alphabetical vocabulary', array_slice( $orde
 check( 'unselected vocabulary trails, no duplicates', $order, [ 'sport', 'gehandicapten', 'jeugd', 'volwassen' ] );
 check( 'only the stored fields are selected', $selected, [ 'sport', 'gehandicapten' ] );
 check( 'labels stay aligned after the reorder', (bool) preg_match( '/value="gehandicapten"[^>]*data-label="Rolstoeltoegankelijk"/', $select ), true );
+check( 'value order rides on the option', (bool) preg_match( '/value="sport"[^>]*data-sort="count-desc"/', $select ), true );
 
 // A field that is no longer in the vocabulary must survive as a selected option.
 ob_start();
@@ -259,7 +274,7 @@ $GLOBALS['draad_test_get_posts_args'] = [];
 
 function get_posts( $args ) {
 	$GLOBALS['draad_test_get_posts_args'][] = $args;
-	return [];
+	return $GLOBALS['draad_test_posts'] ?? [];
 }
 
 draad_maps_render_post_query( [
@@ -287,6 +302,29 @@ check(
 	array_column( $GLOBALS['draad_test_get_posts_args'], 'has_password' ),
 	[ false, false ]
 );
+
+// ---- post_query: value orders follow the properties that have values --------
+
+function get_permalink( $id ) { return 'https://example.test/?p=' . $id; }
+
+$GLOBALS['draad_test_posts'] = [ (object) [ 'ID' => 1, 'post_title' => 'Sporthal' ] ];
+$GLOBALS['draad_test_meta']  = [ 'geo' => '52.07,4.30', 'sport' => 'Voetbal', 'jaar' => '2020' ];
+
+$sorted_query = [
+	'post_type'         => 'location',
+	'location_field'    => 'geo',
+	'label'             => 'Sport',
+	'filter_properties' => 'leeg,sport,jaar',
+	'filter_sorts'      => 'count-desc,alpha-desc,alpha-asc',
+];
+$pq_html = draad_maps_render_post_query( $sorted_query );
+check( 'post_query: a property without values drops out of filter-properties', attr( $pq_html, 'filter-properties' ), 'sport,jaar' );
+check( 'post_query: filter-sorts stays aligned with the emitted properties', attr( $pq_html, 'filter-sorts' ), 'alpha-desc,alpha-asc' );
+
+$pq_html = draad_maps_render_post_query( [ 'filter_sorts' => 'alpha-asc,nonsense,' ] + $sorted_query );
+check( 'post_query: all-default value orders omit the attribute', attr( $pq_html, 'filter-sorts' ), null );
+
+$GLOBALS['draad_test_posts'] = [];
 
 echo "\n" . ( $failures ? "$failures FAILED\n" : "all passed\n" );
 exit( $failures ? 1 : 0 );
